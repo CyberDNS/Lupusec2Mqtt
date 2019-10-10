@@ -1,0 +1,84 @@
+﻿using HomeBear.Common;
+using HomeBear.Component.Lupusec.Dto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Net.Http;
+using System.Text;
+using System.Threading.Tasks;
+
+
+namespace HomeBear.Component.Lupusec
+{
+    public class LupusCalls
+    {
+        public static Task<SensorListDto> GetSensors()
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+
+            return caller.GetJson<SensorListDto>("/action/deviceListGet", "");
+        }
+
+        public static Task<PowerSwitchListDto> GetPowerSwitches()
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+
+            Console.WriteLine("Swtichget");
+            Console.WriteLine(caller.GetText("/action/deviceListPSSGet", "").Result);
+
+            return caller.GetJson<PowerSwitchListDto>("/action/deviceListPSSGet", "");
+        }
+
+
+        public static Task<string> GetLanguage()
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+
+            return caller.GetFileText("/language/en.js", "");
+        }
+
+
+        public static Task<PanelConditionDto> GetPanelCondition()
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+
+            return caller.GetJson<PanelConditionDto>("/action/panelCondGet", "");
+        }
+
+        public static ActionResultDto SetAlarmMode(int area, AlarmCenterActions action)
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+            HttpResponseMessage response = caller.PostValues("/action/panelCondPost", new[]
+            {
+                new KeyValuePair<string, string> ("area", area.ToString()),
+                new KeyValuePair<string, string> ("mode", ((int)action).ToString())
+            });
+
+            return new ActionResultDto();
+        }
+
+        public static ActionResultDto SendSms(string number, string message)
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+            HttpResponseMessage response = caller.PostValues("/action/sendSMSPost", new[]
+            {
+                new KeyValuePair<string, string> ("phone", number),
+                new KeyValuePair<string, string> ("smstext", message)
+            });
+
+            return new ActionResultDto();
+
+        }
+
+        internal static ActionResultDto SetPowerSwitch(string ruleId)
+        {
+            ApiCaller caller = new ApiCaller("http://192.168.2.60", "admin", "bsHzg52N");
+            HttpResponseMessage response = caller.PostValues("/action/haExecute", new[]
+            {
+                new KeyValuePair<string, string> ("ha", ruleId),
+            });
+
+            return new ActionResultDto();
+        }
+    }
+}
