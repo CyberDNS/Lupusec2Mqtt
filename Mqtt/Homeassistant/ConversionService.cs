@@ -30,7 +30,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             }
         }
 
-         public IStateProvider GetStateProvider(Sensor sensor)
+        public (IDevice Area1, IDevice Area2) GetDevice(PanelCondition panelCondition)
+        {
+            return (Area1: new AlarmControlPanel(_configuration, panelCondition, 1), Area2: new AlarmControlPanel(_configuration, panelCondition, 2));
+        }
+
+        public IStateProvider GetStateProvider(Sensor sensor)
         {
             switch (sensor.TypeId)
             {

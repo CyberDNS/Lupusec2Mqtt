@@ -17,11 +17,18 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task<SensorList> GetSensorsAsync()
         {
-            // string responseBody = await _client.GetStringAsync("/action/deviceListGet");
-
             HttpResponseMessage response = await _client.PostAsync("/action/deviceListGet", null);
             response.EnsureSuccessStatusCode();
             SensorList responseBody = await response.Content.ReadAsAsync<SensorList>();
+
+            return responseBody;
+        }
+
+        public async Task<PanelCondition> GetPanelConditionAsync()
+        {
+            HttpResponseMessage response = await _client.PostAsync("/action/panelCondGet", null);
+            response.EnsureSuccessStatusCode();
+            PanelCondition responseBody = await response.Content.ReadAsAsync<PanelCondition>();
 
             return responseBody;
         }

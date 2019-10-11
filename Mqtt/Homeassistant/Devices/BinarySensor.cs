@@ -5,28 +5,20 @@ using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class BinarySensor : IDevice, IStateProvider
+    public class BinarySensor : Device, IDevice, IStateProvider
     {
-        private readonly Sensor _sensor;
-        private readonly IConfiguration _configuration;
-
-        [JsonProperty("name")]
-        public string Name { get; set; }
-
-        [JsonProperty("unique_id")]
-        public string UniqueId { get; set; }
+        protected readonly Sensor _sensor;
 
         [JsonProperty("device_class")]
         public string DeviceClass { get; set; }
 
-        [JsonIgnore]
-        public string ConfigTopic => $"homeassistant/binary_sensor/lupusec/{_sensor.SensorId.Replace(":", "")}/config";
-
         [JsonProperty("state_topic")]
-        public string StateTopic => $"homeassistant/binary_sensor/lupusec/{_sensor.SensorId.Replace(":", "")}/state";
+        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
 
         [JsonIgnore]
         public string State => GetState();
+
+        protected override string _component => "binary_sensor";
 
         private string GetState()
         {
@@ -46,18 +38,13 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         }
 
         public BinarySensor(IConfiguration configuration, Sensor sensor)
+        : base(configuration)
         {
-            _configuration = configuration;
             _sensor = sensor;
 
-            UniqueId = _sensor.SensorId.Replace(":", "");
+            UniqueId = _sensor.SensorId;
             Name = GetValue(nameof(Name), sensor.Name);
             DeviceClass = GetValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
-        }
-
-        private string GetValue(string property, string defaultValue)
-        {
-            return _configuration[$"Mappings:{_sensor.SensorId}:{property}"] ?? defaultValue;
         }
 
         private string GetDeviceClassDefaultValue()

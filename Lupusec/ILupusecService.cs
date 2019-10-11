@@ -6,5 +6,6 @@ namespace Lupusec2Mqtt.Lupusec
     public interface ILupusecService
     {
         Task<SensorList> GetSensorsAsync();
+        Task<PanelCondition> GetPanelConditionAsync();
     }
 }

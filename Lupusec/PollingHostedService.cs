@@ -45,6 +45,11 @@ namespace Lupusec2Mqtt.Lupusec
                 if (config != null) { _mqttService.Publish(config.ConfigTopic, JsonConvert.SerializeObject(config)); }
             }
 
+            PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
+            var panelConditions = _conversionService.GetDevice(panelCondition);
+            _mqttService.Publish(panelConditions.Area1.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area1));
+            _mqttService.Publish(panelConditions.Area2.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area2));
+
             _timer = new Timer(DoWork, null, TimeSpan.Zero,
                 TimeSpan.FromSeconds(5));
         }
@@ -58,14 +63,14 @@ namespace Lupusec2Mqtt.Lupusec
             foreach (var sensor in response.Sensors)
             {
                 IStateProvider device = _conversionService.GetStateProvider(sensor);
-                if (device != null) 
-                { 
+                if (device != null)
+                {
                     if (device.UniqueId == "RF01a99f10")
                     {
 
                     }
                     _mqttService.Publish(device.StateTopic, device.State);
-                     }
+                }
             }
 
             _logger.LogInformation(
