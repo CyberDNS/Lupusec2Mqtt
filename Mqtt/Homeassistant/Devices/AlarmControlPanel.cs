@@ -8,6 +8,10 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
     {
         protected override string _component => "alarm_control_panel";
 
+        private readonly PanelCondition _panelCondition;
+        private readonly Pcondform _panelConditionForm;
+
+
 
         [JsonProperty("state_topic")]
         public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
@@ -21,27 +25,38 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public AlarmControlPanel(IConfiguration configuration, PanelCondition panelCondition, int area)
         : base(configuration)
         {
+            _panelCondition = panelCondition;
+
+            switch (area)
+            {
+                case 1:
+                    _panelConditionForm = _panelCondition.forms.pcondform1;
+                    break;
+                case 2:
+                    _panelConditionForm = _panelCondition.forms.pcondform2;
+                    break;
+            }
+
             Name = $"Area {area}";
             UniqueId = $"lupusec_alarm_area{area}";
         }
 
         private string GetState()
         {
-            // switch (_sensor.TypeId)
-            // {
-            //     case 4: // Opener contact
-            //         return _sensor.Status == "{WEB_MSG_DC_OPEN}" ? "ON" : "OFF";
-            //     case 9: // Motion detector
-            //         return "Off";
-            //     case 11: // Smoke detector
-            //         return _sensor.Status == "{RPT_CID_111}" ? "ON" : "OFF";
-            //     case 5: // Water detector
-            //         return "Off";
-            //     default:
-            //         return null;
-            // }
-
-            return "DISARMED";
+            switch (_panelConditionForm.mode)
+            {
+                case "0": 
+                    return "disarmed";
+                case "1": 
+                    return "armed_away";
+                case "2":
+                    return "armed_night";
+                case "3":
+                case "4":
+                    return "armed_home";
+                default:
+                    return null;
+            }
         }
     }
 }

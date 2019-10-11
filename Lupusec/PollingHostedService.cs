@@ -63,15 +63,13 @@ namespace Lupusec2Mqtt.Lupusec
             foreach (var sensor in response.Sensors)
             {
                 IStateProvider device = _conversionService.GetStateProvider(sensor);
-                if (device != null)
-                {
-                    if (device.UniqueId == "RF01a99f10")
-                    {
-
-                    }
-                    _mqttService.Publish(device.StateTopic, device.State);
-                }
+                if (device != null) { _mqttService.Publish(device.StateTopic, device.State); }
             }
+
+            PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
+            var panelConditions = _conversionService.GetDevice(panelCondition);
+            _mqttService.Publish(panelConditions.Area1.StateTopic, panelConditions.Area1.State);
+            _mqttService.Publish(panelConditions.Area2.StateTopic, panelConditions.Area2.State);
 
             _logger.LogInformation(
                 "Timed Hosted Service is working. Count: {Count} Response: {Response}", executionCount, response);
