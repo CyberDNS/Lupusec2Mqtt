@@ -57,7 +57,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         private string GetValue(string property, string defaultValue)
         {
-            return _configuration[$"Mappings:{_sensor.SensorId}:DeviceClass"] ?? defaultValue;
+            return _configuration[$"Mappings:{_sensor.SensorId}:{property}"] ?? defaultValue;
         }
 
         private string GetDeviceClassDefaultValue()
@@ -71,7 +71,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 case 11:
                     return "smoke";
                 case 5:
-                    return "water";
+                    return "moisture";
                 default:
                     return null;
             }

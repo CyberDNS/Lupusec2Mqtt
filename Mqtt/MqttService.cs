@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.Extensions.Configuration;
 using uPLibrary.Networking.M2Mqtt;
+using uPLibrary.Networking.M2Mqtt.Messages;
 
 namespace Lupusec2Mqtt.Mqtt
 {
@@ -15,7 +16,7 @@ namespace Lupusec2Mqtt.Mqtt
 
         public void Publish(string topic, string payload)
         {
-            _client.Publish(topic, Encoding.UTF8.GetBytes(payload));
+            _client.Publish(topic, Encoding.UTF8.GetBytes(payload), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
         }
     }
 }
