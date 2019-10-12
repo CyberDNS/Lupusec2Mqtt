@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Lupusec2Mqtt.Lupusec.Dtos;
@@ -60,24 +61,26 @@ namespace Lupusec2Mqtt.Lupusec
 
         private async void DoWork(object state)
         {
-            executionCount++;
-
-            SensorList response = await _lupusecService.GetSensorsAsync();
-
-            foreach (var sensor in response.Sensors)
+            try
             {
-                IStateProvider device = _conversionService.GetStateProvider(sensor);
-                if (device != null) { _mqttService.Publish(device.StateTopic, device.State); }
+                SensorList response = await _lupusecService.GetSensorsAsync();
+
+                foreach (var sensor in response.Sensors)
+                {
+                    IStateProvider device = _conversionService.GetStateProvider(sensor);
+                    if (device != null) { _mqttService.Publish(device.StateTopic, device.State); }
+                }
+
+                PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
+                var panelConditions = _conversionService.GetDevice(panelCondition);
+                _mqttService.Publish(panelConditions.Area1.StateTopic, panelConditions.Area1.State);
+                _mqttService.Publish(panelConditions.Area2.StateTopic, panelConditions.Area2.State);
             }
-
-            PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
-            var panelConditions = _conversionService.GetDevice(panelCondition);
-            _mqttService.Publish(panelConditions.Area1.StateTopic, panelConditions.Area1.State);
-            _mqttService.Publish(panelConditions.Area2.StateTopic, panelConditions.Area2.State);
-
-            _logger.LogInformation(
-                "Timed Hosted Service is working. Count: {Count} Response: {Response}", executionCount, response);
-
+            catch (HttpRequestException ex)
+            {
+                // Log and retry on next iteration
+                _logger.LogError(ex, "An error occured");
+            }
         }
 
         public Task StopAsync(CancellationToken stoppingToken)
