@@ -45,14 +45,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         {
             switch (_panelConditionForm.mode)
             {
-                case "0": 
+                case AlarmMode.Disarmed: 
                     return "disarmed";
-                case "1": 
+                case AlarmMode.FullArm: 
                     return "armed_away";
-                case "2":
+                case AlarmMode.HomeArm1:
                     return "armed_night";
-                case "3":
-                case "4":
+                case AlarmMode.HomeArm2:
+                case AlarmMode.HomeArm3:
                     return "armed_home";
                 default:
                     return null;

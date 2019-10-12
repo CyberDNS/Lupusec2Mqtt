@@ -35,7 +35,7 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
 
     public class Pcondform
     {
-        public string mode { get; set; }
+        public AlarmMode mode { get; set; }
         public string f_arm { get; set; }
     }
 
