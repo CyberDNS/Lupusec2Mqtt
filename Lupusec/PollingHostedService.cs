@@ -47,6 +47,10 @@ namespace Lupusec2Mqtt.Lupusec
 
             PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
             var panelConditions = _conversionService.GetDevice(panelCondition);
+
+            _mqttService.Register(panelConditions.Area1.CommandTopic, m => { _lupusecService.SetAlarmMode(1, (AlarmMode)Enum.Parse(typeof(AlarmModeAction), m)); });
+            _mqttService.Register(panelConditions.Area2.CommandTopic, m => { _lupusecService.SetAlarmMode(2, (AlarmMode)Enum.Parse(typeof(AlarmModeAction), m)); });
+
             _mqttService.Publish(panelConditions.Area1.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area1));
             _mqttService.Publish(panelConditions.Area2.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area2));
 

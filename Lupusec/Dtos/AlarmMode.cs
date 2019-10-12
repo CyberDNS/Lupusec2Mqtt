@@ -9,4 +9,13 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
         HomeArm3 = 4
 
     }
+
+        public enum AlarmModeAction : byte
+    {
+        DISARM = 0,
+        ARM_AWAY = 1,
+        ARM_NIGHT = 2,
+        ARM_HOME = 3
+
+    }
 }
