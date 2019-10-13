@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Polly;
 
 namespace Lupusec2Mqtt
 {
@@ -35,6 +36,16 @@ namespace Lupusec2Mqtt
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
                 Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
+            })
+            .AddTransientHttpErrorPolicy(c => 
+            {
+                return c.WaitAndRetryAsync(new[]
+                {
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(5),
+                    TimeSpan.FromSeconds(10)
+                },
+                (ex, timespan) => LupusecTokenHandler.ResetToken());
             });
 
             services.AddHttpClient<ILupusecService, LupusecService>(client =>

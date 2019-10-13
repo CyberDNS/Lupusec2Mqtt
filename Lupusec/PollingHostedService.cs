@@ -36,7 +36,6 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task StartAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Timed Hosted Service running.");
 
             SensorList response = await _lupusecService.GetSensorsAsync();
 
@@ -85,8 +84,6 @@ namespace Lupusec2Mqtt.Lupusec
 
         public Task StopAsync(CancellationToken stoppingToken)
         {
-            _logger.LogInformation("Timed Hosted Service is stopping.");
-
             _timer?.Change(Timeout.Infinite, 0);
 
             return Task.CompletedTask;

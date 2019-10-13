@@ -33,5 +33,10 @@ namespace Lupusec2Mqtt.Lupusec
 
             return responseBody.Message;
         }
+
+        static public void ResetToken()
+        {
+            _token = null;
+        }
     }
 }
