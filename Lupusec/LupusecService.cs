@@ -2,48 +2,28 @@ using System;
 using System.Collections.Generic;
 using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Text;
 using System.Threading.Tasks;
 using Lupusec2Mqtt.Lupusec.Dtos;
-
+using Microsoft.Extensions.Configuration;
 
 namespace Lupusec2Mqtt.Lupusec
 {
     public class LupusecService : ILupusecService
     {
-
-
         private readonly HttpClient _client;
+        private readonly IConfiguration _configuration;
 
-        private string _token;
-        private DateTime _tokenLastRefresh;
-        private readonly TimeSpan _tokenRefreshRate = TimeSpan.FromMinutes(5);
-
-        public LupusecService(HttpClient client)
+        public LupusecService(HttpClient client, IConfiguration configuration)
         {
             _client = client;
-        }
-
-        private async Task UpdateToken()
-        {
-            if ((_tokenLastRefresh == default(DateTime)) || (DateTime.UtcNow - _tokenLastRefresh) > _tokenRefreshRate)
-            {
-                HttpResponseMessage response = await _client.GetAsync("/action/tokenGet");
-                response.EnsureSuccessStatusCode();
-
-                ActionResult responseBody = await response.Content.ReadAsAsync<ActionResult>();
-
-                _token = responseBody.Message;
-                _tokenLastRefresh = DateTime.UtcNow;
-
-                _client.DefaultRequestHeaders.Add("X-Token", _token);
-            }
+            _configuration = configuration;
         }
 
         public async Task<SensorList> GetSensorsAsync()
         {
-            await UpdateToken();
-
-            HttpResponseMessage response = await _client.PostAsync("/action/deviceListGet", null);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceListGet");
+            HttpResponseMessage response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             SensorList responseBody = await response.Content.ReadAsAsync<SensorList>();
 
@@ -52,9 +32,8 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task<PanelCondition> GetPanelConditionAsync()
         {
-            await UpdateToken();
-
-            HttpResponseMessage response = await _client.PostAsync("/action/panelCondGet", null);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondGet");
+            HttpResponseMessage response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
             PanelCondition responseBody = await response.Content.ReadAsAsync<PanelCondition>();
 
@@ -63,14 +42,15 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task<ActionResult> SetAlarmMode(int area, AlarmMode mode)
         {
-            await UpdateToken();
-
             IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
                 { new KeyValuePair<string, string>("area", $"{area}") },
                 { new KeyValuePair<string, string>("mode", $"{(byte)mode}") },
             };
 
-            HttpResponseMessage response = await _client.PostAsync("/action/panelCondPost", new FormUrlEncodedContent(formData));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondPost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            HttpResponseMessage response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
             string result = await response.Content.ReadAsStringAsync();

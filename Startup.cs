@@ -28,6 +28,15 @@ namespace Lupusec2Mqtt
         {
             services.AddHostedService<PollingHostedService>();
 
+            services.AddHttpClient<LupusecTokenHandler>(client =>
+            {
+                client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
+            });
+
             services.AddHttpClient<ILupusecService, LupusecService>(client =>
             {
                 client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
@@ -36,7 +45,8 @@ namespace Lupusec2Mqtt
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
                 Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
             })
-            .ConfigurePrimaryHttpMessageHandler( handler => new HttpClientHandler() { ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true });
+            .AddHttpMessageHandler<LupusecTokenHandler>();
+            // .ConfigurePrimaryHttpMessageHandler(handler => new HttpClientHandler() { ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
