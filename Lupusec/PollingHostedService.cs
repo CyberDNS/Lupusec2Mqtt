@@ -17,7 +17,6 @@ namespace Lupusec2Mqtt.Lupusec
 {
     public class PollingHostedService : IHostedService, IDisposable
     {
-        private int executionCount = 0;
         private readonly ILogger<PollingHostedService> _logger;
         private readonly ILupusecService _lupusecService;
         private readonly ConversionService _conversionService;
@@ -36,7 +35,6 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task StartAsync(CancellationToken stoppingToken)
         {
-
             SensorList response = await _lupusecService.GetSensorsAsync();
 
             foreach (var sensor in response.Sensors)
@@ -48,14 +46,26 @@ namespace Lupusec2Mqtt.Lupusec
             PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
             var panelConditions = _conversionService.GetDevice(panelCondition);
 
-            _mqttService.Register(panelConditions.Area1.CommandTopic, m => { _lupusecService.SetAlarmMode(1, (AlarmMode)Enum.Parse(typeof(AlarmModeAction), m)); });
-            _mqttService.Register(panelConditions.Area2.CommandTopic, m => { _lupusecService.SetAlarmMode(2, (AlarmMode)Enum.Parse(typeof(AlarmModeAction), m)); });
+            _mqttService.Register(panelConditions.Area1.CommandTopic, mode => { SetAlarm(1, mode); });
+            _mqttService.Register(panelConditions.Area2.CommandTopic, mode => { SetAlarm(2, mode); });
 
             _mqttService.Publish(panelConditions.Area1.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area1));
             _mqttService.Publish(panelConditions.Area2.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area2));
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero,
-                TimeSpan.FromSeconds(5));
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        }
+
+        private void SetAlarm(int area, string mode)
+        {
+            try
+            {
+                _logger.LogInformation("Area {Area} set to {Mode}", area, mode);
+                _lupusecService.SetAlarmMode(area, (AlarmMode)Enum.Parse(typeof(AlarmModeAction), mode));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured while setting alarm mode to Area {Area} set to {Mode}", area, mode);
+            }
         }
 
         private async void DoWork(object state)
