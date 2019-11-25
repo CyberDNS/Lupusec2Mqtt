@@ -32,7 +32,7 @@ namespace Lupusec2Mqtt.Lupusec
 
             return responseBody;
         }
-p
+
         public async Task<PanelCondition> GetPanelConditionAsync()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondGet");
