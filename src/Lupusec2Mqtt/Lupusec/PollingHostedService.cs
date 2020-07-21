@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
@@ -74,6 +75,8 @@ namespace Lupusec2Mqtt.Lupusec
             {
                 SensorList response = await _lupusecService.GetSensorsAsync();
 
+                _logger.LogInformation("Received {countSensors} sensors", response.Sensors.Count());
+
                 foreach (var sensor in response.Sensors)
                 {
                     IStateProvider device = _conversionService.GetStateProvider(sensor);
@@ -82,6 +85,8 @@ namespace Lupusec2Mqtt.Lupusec
 
                 PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
                 var panelConditions = _conversionService.GetDevice(panelCondition);
+                _logger.LogInformation("Received alarm panel information (Area 1: {area1}, Area 2: {area2})", panelConditions.Area1.State, panelConditions.Area2.State);
+
                 _mqttService.Publish(panelConditions.Area1.StateTopic, panelConditions.Area1.State);
                 _mqttService.Publish(panelConditions.Area2.StateTopic, panelConditions.Area2.State);
             }

@@ -1,13 +1,13 @@
-FROM mcr.microsoft.com/dotnet/core/aspnet:3.0 AS base
+FROM mcr.microsoft.com/dotnet/core/aspnet:3.1-buster-slim AS base
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/core/sdk:3.0 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1-buster AS build
 WORKDIR /src
-COPY ["Lupusec2Mqtt.csproj", "./"]
-RUN dotnet restore "./Lupusec2Mqtt.csproj"
+COPY ["Lupusec2Mqtt/Lupusec2Mqtt.csproj", "Lupusec2Mqtt/"]
+RUN dotnet restore "Lupusec2Mqtt/Lupusec2Mqtt.csproj"
 COPY . .
-WORKDIR "/src/."
+WORKDIR "/src/Lupusec2Mqtt"
 RUN dotnet build "Lupusec2Mqtt.csproj" -c Release -o /app/build
 
 FROM build AS publish
