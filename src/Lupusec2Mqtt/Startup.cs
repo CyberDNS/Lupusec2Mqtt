@@ -13,6 +13,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Polly;
+using Serilog.Core;
+using Serilog;
 
 namespace Lupusec2Mqtt
 {
@@ -37,6 +39,7 @@ namespace Lupusec2Mqtt
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
                 Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
             })
+            .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
             .AddTransientHttpErrorPolicy(c => 
             {
                 return c.WaitAndRetryAsync(new[]
@@ -56,8 +59,8 @@ namespace Lupusec2Mqtt
                 client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
                 Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
             })
+            .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
             .AddHttpMessageHandler<LupusecTokenHandler>();
-            // .ConfigurePrimaryHttpMessageHandler(handler => new HttpClientHandler() { ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => true });
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -74,7 +77,7 @@ namespace Lupusec2Mqtt
             {
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync("Hello World!");
+                    await context.Response.WriteAsync("Hello Lupusec2Mqtt!");
                 });
             });
         }

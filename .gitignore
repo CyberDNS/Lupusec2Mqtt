@@ -1,3 +1,6 @@
+usersettings.json
+
+
 ### DotnetCore ###
 # .NET Core build folders
 bin/
@@ -8,7 +11,7 @@ obj/
 
 ### Visual Studio 2019 ###
 .vs/
-
+*.pubxml.user
 
 ### Windows ###
 # Windows thumbnail cache files
