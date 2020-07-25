@@ -11,7 +11,7 @@ obj/
 
 ### Visual Studio 2019 ###
 .vs/
-*.pubxml.user
+*.user
 
 ### Windows ###
 # Windows thumbnail cache files
