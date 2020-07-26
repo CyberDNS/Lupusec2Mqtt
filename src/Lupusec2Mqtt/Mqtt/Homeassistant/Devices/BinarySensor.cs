@@ -27,11 +27,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 case 4: // Opener contact
                     return _sensor.Status == "{WEB_MSG_DC_OPEN}" ? "ON" : "OFF";
                 case 9: // Motion detector
-                    return "Off";
+                    return "OFF";
                 case 11: // Smoke detector
                     return _sensor.Status == "{RPT_CID_111}" ? "ON" : "OFF";
                 case 5: // Water detector
-                    return "Off";
+                    return "OFF";
                 default:
                     return null;
             }
