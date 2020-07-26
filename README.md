@@ -9,6 +9,7 @@ Make your Lupusec XT2 (and compatible) Alarm System available on an MQTT Broker 
 ## What is already working
 
 - Alarm panel (config, state, set)
+- Burglar Alarm state (config, state)
 - Open/Close contacts (config, state)
 - Smoke detector (config)
 - Movement detector (config)
