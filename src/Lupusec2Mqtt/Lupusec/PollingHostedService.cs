@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Lupusec2Mqtt.Lupusec.Dtos;
@@ -21,6 +22,7 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly ILogger<PollingHostedService> _logger;
         private readonly ILupusecService _lupusecService;
         private readonly ConversionService _conversionService;
+        private readonly IConfiguration _configuration;
 
         private readonly MqttService _mqttService;
         private Timer _timer;
@@ -29,9 +31,10 @@ namespace Lupusec2Mqtt.Lupusec
         {
             _logger = logger;
             _lupusecService = lupusecService;
+            _configuration = configuration;
 
-            _conversionService = new ConversionService(configuration);
-            _mqttService = new MqttService(configuration);
+            _conversionService = new ConversionService(_configuration);
+            _mqttService = new MqttService(_configuration);
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
@@ -53,7 +56,13 @@ namespace Lupusec2Mqtt.Lupusec
             _mqttService.Publish(panelConditions.Area1.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area1));
             _mqttService.Publish(panelConditions.Area2.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area2));
 
-            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(5));
+            AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
+            AlarmBinarySensor alarmBinarySensorArea2 = new AlarmBinarySensor(_configuration, 2);
+
+            _mqttService.Publish(alarmBinarySensorArea1.ConfigTopic, JsonConvert.SerializeObject(alarmBinarySensorArea1));
+            _mqttService.Publish(alarmBinarySensorArea2.ConfigTopic, JsonConvert.SerializeObject(alarmBinarySensorArea2));
+
+            _timer = new Timer(DoWork, null, TimeSpan.Zero, TimeSpan.FromSeconds(2));
         }
 
         private void SetAlarm(int area, string mode)
@@ -89,6 +98,15 @@ namespace Lupusec2Mqtt.Lupusec
 
                 _mqttService.Publish(panelConditions.Area1.StateTopic, panelConditions.Area1.State);
                 _mqttService.Publish(panelConditions.Area2.StateTopic, panelConditions.Area2.State);
+
+                AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
+                AlarmBinarySensor alarmBinarySensorArea2 = new AlarmBinarySensor(_configuration, 2);
+
+                alarmBinarySensorArea1.SetState(response.Sensors);
+                alarmBinarySensorArea2.SetState(response.Sensors);
+
+                _mqttService.Publish(alarmBinarySensorArea1.StateTopic, alarmBinarySensorArea1.State);
+                _mqttService.Publish(alarmBinarySensorArea2.StateTopic, alarmBinarySensorArea2.State);
             }
             catch (HttpRequestException ex)
             {
