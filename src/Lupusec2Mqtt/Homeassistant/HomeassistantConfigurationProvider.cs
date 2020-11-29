@@ -20,7 +20,7 @@ namespace Lupusec2Mqtt.Homeassistant
             _path = path;
             var expando = JsonConvert.DeserializeObject<ExpandoObject>(File.ReadAllText(_path));
 
-            foreach(var kvp in (ExpandoObject)expando.Where(e => e.Key.Equals("options", StringComparison.OrdinalIgnoreCase)).Single().Value)
+            foreach(var kvp in expando)
             {
                 if (kvp.Value is IList)
                 {
