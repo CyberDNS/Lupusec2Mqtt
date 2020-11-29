@@ -12,6 +12,8 @@ namespace Lupusec2Mqtt.Homeassistant
     {
         public static IConfigurationBuilder AddHomeassistantConfig(this IConfigurationBuilder builder, string path)
         {
+            Log.Logger.Information("Homeassistant config file path is {homeassistantConfigFilePath}", path);
+
             if (File.Exists(path))
             {
                 return builder.Add(new HomeassistantConfigurationSource(path));
