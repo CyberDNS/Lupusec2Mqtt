@@ -52,7 +52,7 @@ namespace Lupusec2Mqtt
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile(@"config/configuration.json", optional: true, reloadOnChange: false);
-                    config.AddHomeassistantConfig(_configuration["ASPNETCORE_HOMEASSISTANT:CONFIG"]);
+                    config.AddHomeassistantConfig(Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"));
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
