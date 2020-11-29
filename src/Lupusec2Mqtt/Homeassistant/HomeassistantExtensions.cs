@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -15,6 +16,8 @@ namespace Lupusec2Mqtt.Homeassistant
             {
                 return builder.Add(new HomeassistantConfigurationSource(path));
             }
+
+            if (path != null) { Log.Logger.Warning("Homeassistant config file not found at {homeassistantConfigFilePath}", path); }
 
             return builder;
         }
