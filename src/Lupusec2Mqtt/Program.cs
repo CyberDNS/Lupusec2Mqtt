@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Lupusec2Mqtt.Homeassistant;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -13,10 +14,13 @@ namespace Lupusec2Mqtt
 {
     public class Program
     {
+        private static IConfiguration _configuration;
         public static int Main(string[] args)
         {
+            _configuration = Configuration;
+
             Log.Logger = new LoggerConfiguration()
-                           .ReadFrom.Configuration(Configuration)
+                           .ReadFrom.Configuration(_configuration)
                            .Enrich.FromLogContext()
                            .WriteTo.Debug()
                            .WriteTo.Console(
@@ -48,6 +52,7 @@ namespace Lupusec2Mqtt
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
                     config.AddJsonFile(@"config/configuration.json", optional: true, reloadOnChange: false);
+                    config.AddHomeassistantConfig(_configuration["ASPNETCORE_HOMEASSISTANT:CONFIG"]);
                 })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
