@@ -1,6 +1,9 @@
 # Lupusec2Mqtt
 
-Make your Lupusec XT2 (and compatible) Alarm System available on an MQTT Broker (compatible with Home Assistant)
+Make your Lupusec XT2 (and compatible) Alarm System available on an MQTT Broker (compatible with Home Assistant).
+
+**For Homeassistant Users:** It is available as Addon that can be directly installed by the Supervisor tab.  
+The repository is: https://github.com/CyberDNS/hassio-addons-repository
 
 ## Tested with
 - XT2
