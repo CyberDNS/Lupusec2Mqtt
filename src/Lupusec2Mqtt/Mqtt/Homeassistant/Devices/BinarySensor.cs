@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using Lupusec2Mqtt.Lupusec.Dtos;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
@@ -8,6 +10,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
     public class BinarySensor : Device, IDevice, IStateProvider
     {
         protected readonly Sensor _sensor;
+        protected readonly IEnumerable<Logrow> _logRows;
 
         [JsonProperty("device_class")]
         public string DeviceClass { get; set; }
@@ -27,7 +30,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 case 4: // Opener contact
                     return _sensor.Status == "{WEB_MSG_DC_OPEN}" ? "ON" : "OFF";
                 case 9: // Motion detector
-                    return "OFF";
+                    var matchingEvent = _logRows.Where(r => r.Event.StartsWith("{ALARM_HISTORY_20}"))
+                        .OrderByDescending(r => r.UtcDateTime)
+                        .FirstOrDefault(r => (DateTime.UtcNow - r.UtcDateTime) <= TimeSpan.FromSeconds(_configuration.GetValue<int>("MotionSensor:DetectionDuration")));
+
+                    return matchingEvent != null ? "ON" : "OFF";
                 case 11: // Smoke detector
                     return _sensor.Status == "{RPT_CID_111}" ? "ON" : "OFF";
                 case 5: // Water detector
@@ -37,10 +44,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             }
         }
 
-        public BinarySensor(IConfiguration configuration, Sensor sensor)
+        public BinarySensor(IConfiguration configuration, Sensor sensor, IEnumerable<Logrow> logRows = default)
         : base(configuration)
         {
             _sensor = sensor;
+            _logRows = logRows;
 
             UniqueId = _sensor.SensorId;
             Name = GetValue(nameof(Name), sensor.Name);
