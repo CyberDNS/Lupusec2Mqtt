@@ -27,6 +27,9 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly MqttService _mqttService;
         private Timer _timer;
 
+        private int _logCounter = 0;
+        private int _logEveryNCycle = 5;
+
         public PollingHostedService(ILogger<PollingHostedService> logger, ILupusecService lupusecService, IConfiguration configuration)
         {
             _logger = logger;
@@ -82,19 +85,26 @@ namespace Lupusec2Mqtt.Lupusec
         {
             try
             {
-                SensorList response = await _lupusecService.GetSensorsAsync();
+                if (--_logCounter <= 0) {
+                    _logger.LogInformation($"Polling... (Every {_logEveryNCycle}th cycle is logged)");
+                    _logCounter = _logEveryNCycle;
+                }
 
-                _logger.LogInformation("Received {countSensors} sensors", response.Sensors.Count());
+                SensorList sensorList = await _lupusecService.GetSensorsAsync();
+                _logger.LogDebug("Received {countSensors} sensors", sensorList.Sensors.Count());
 
-                foreach (var sensor in response.Sensors)
+                RecordList recordList = await _lupusecService.GetRecordsAsync();
+                _logger.LogDebug("Received records");
+
+                foreach (var sensor in sensorList.Sensors)
                 {
-                    IStateProvider device = _conversionService.GetStateProvider(sensor);
+                    IStateProvider device = _conversionService.GetStateProvider(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
                     if (device != null) { _mqttService.Publish(device.StateTopic, device.State); }
                 }
 
                 PanelCondition panelCondition = await _lupusecService.GetPanelConditionAsync();
                 var panelConditions = _conversionService.GetDevice(panelCondition);
-                _logger.LogInformation("Received alarm panel information (Area 1: {area1}, Area 2: {area2})", panelConditions.Area1.State, panelConditions.Area2.State);
+                _logger.LogDebug("Received alarm panel information (Area 1: {area1}, Area 2: {area2})", panelConditions.Area1.State, panelConditions.Area2.State);
 
                 _mqttService.Publish(panelConditions.Area1.StateTopic, panelConditions.Area1.State);
                 _mqttService.Publish(panelConditions.Area2.StateTopic, panelConditions.Area2.State);
@@ -102,8 +112,8 @@ namespace Lupusec2Mqtt.Lupusec
                 AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
                 AlarmBinarySensor alarmBinarySensorArea2 = new AlarmBinarySensor(_configuration, 2);
 
-                alarmBinarySensorArea1.SetState(response.Sensors);
-                alarmBinarySensorArea2.SetState(response.Sensors);
+                alarmBinarySensorArea1.SetState(sensorList.Sensors);
+                alarmBinarySensorArea2.SetState(sensorList.Sensors);
 
                 _mqttService.Publish(alarmBinarySensorArea1.StateTopic, alarmBinarySensorArea1.State);
                 _mqttService.Publish(alarmBinarySensorArea2.StateTopic, alarmBinarySensorArea2.State);

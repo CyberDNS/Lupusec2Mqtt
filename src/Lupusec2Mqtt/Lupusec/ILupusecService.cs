@@ -6,6 +6,8 @@ namespace Lupusec2Mqtt.Lupusec
     public interface ILupusecService
     {
         Task<SensorList> GetSensorsAsync();
+        Task<RecordList> GetRecordsAsync();
+
         Task<PanelCondition> GetPanelConditionAsync();
 
         Task<ActionResult> SetAlarmMode(int area, AlarmMode mode);

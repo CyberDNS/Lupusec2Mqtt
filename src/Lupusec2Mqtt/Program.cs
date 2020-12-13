@@ -17,7 +17,7 @@ namespace Lupusec2Mqtt
         private static IConfiguration _configuration;
         public static int Main(string[] args)
         {
-            _configuration = Configuration;
+            _configuration = BuildConfiguration();
 
             Log.Logger = new LoggerConfiguration()
                            .ReadFrom.Configuration(_configuration)
@@ -49,21 +49,26 @@ namespace Lupusec2Mqtt
         public static IHostBuilder CreateHostBuilder(string[] args) =>
             Host.CreateDefaultBuilder(args)
                 .UseSerilog()
-                .ConfigureAppConfiguration((hostingContext, config) =>
-                {
-                    config.AddJsonFile(@"config/configuration.json", optional: true, reloadOnChange: false);
-                    config.AddHomeassistantConfig(@"/data/options.json");
-                })
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>();
                 });
 
-        public static IConfiguration Configuration { get; } = new ConfigurationBuilder()
+        private static IConfiguration BuildConfiguration()
+        {
+            var config = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-            .AddEnvironmentVariables()
-            .Build();
+            .AddEnvironmentVariables();
+
+            config.AddJsonFile(@"config/configuration.json", optional: true, reloadOnChange: false);
+
+            string hassConfigPath = @"/data/options.json";
+            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"))) { hassConfigPath = Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"); }
+            config.AddHomeassistantConfig(hassConfigPath);
+
+            return config.Build();
+        }
     }
 }

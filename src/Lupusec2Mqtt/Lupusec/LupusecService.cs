@@ -33,6 +33,16 @@ namespace Lupusec2Mqtt.Lupusec
             return responseBody;
         }
 
+        public async Task<RecordList> GetRecordsAsync()
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/recordListGet");
+            HttpResponseMessage response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            RecordList responseBody = await response.Content.ReadAsAsync<RecordList>();
+
+            return responseBody;
+        }
+
         public async Task<PanelCondition> GetPanelConditionAsync()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondGet");
