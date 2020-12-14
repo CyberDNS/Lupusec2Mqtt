@@ -51,6 +51,7 @@ namespace Lupusec2Mqtt
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
+                    webBuilder.ConfigureAppConfiguration(c => BuildConfiguration());
                     webBuilder.UseStartup<Startup>();
                 });
 
