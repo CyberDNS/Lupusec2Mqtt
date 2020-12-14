@@ -25,6 +25,11 @@ namespace Lupusec2Mqtt
         public Startup(IConfiguration configuration)
         {
             Configuration = configuration;
+
+            foreach (var kvp in Configuration.AsEnumerable())
+            {
+                Console.WriteLine($"{kvp.Key} => {kvp.Value}");
+            }
         }
 
         public void ConfigureServices(IServiceCollection services)

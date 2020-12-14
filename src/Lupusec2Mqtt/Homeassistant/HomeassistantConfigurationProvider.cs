@@ -22,25 +22,7 @@ namespace Lupusec2Mqtt.Homeassistant
 
             foreach(var kvp in expando)
             {
-                if (kvp.Value is IList)
-                {
-                    foreach (var listItem in ((IEnumerable)kvp.Value).Cast<ExpandoObject>())
-                    {
-                        string key = kvp.Key;
-                        string uniqueId = listItem.Where(e => e.Key.Equals("UniqueId", StringComparison.OrdinalIgnoreCase)).Select(e => e.Value.ToString()).SingleOrDefault();
-                        
-                        if (uniqueId != null) { key += $":{uniqueId}"; }
-
-                        foreach (var listValue in listItem.Where(e => !e.Key.Equals("UniqueId", StringComparison.OrdinalIgnoreCase)))
-                        {
-                            Data.Add($"{key}:{listValue.Key}", listValue.Value.ToString());
-                        }
-                    }
-                }
-                else
-                {
-                    Data.Add(kvp.Key, kvp.Value.ToString());
-                }
+                Data.Add(kvp.Key, kvp.Value.ToString());
             }
         }
 
