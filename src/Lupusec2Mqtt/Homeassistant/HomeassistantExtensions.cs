@@ -16,6 +16,9 @@ namespace Lupusec2Mqtt.Homeassistant
 
             if (File.Exists(path))
             {
+                Console.WriteLine("Config is:");
+                Console.WriteLine(File.ReadAllText(path));
+
                 return builder.Add(new HomeassistantConfigurationSource(path));
             }
 
