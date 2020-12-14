@@ -63,8 +63,6 @@ namespace Lupusec2Mqtt
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
             .AddEnvironmentVariables();
 
-            config.AddJsonFile(@"config/configuration.json", optional: true, reloadOnChange: false);
-
             string hassConfigPath = @"/data/options.json";
             if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"))) { hassConfigPath = Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"); }
             config.AddHomeassistantConfig(hassConfigPath);
