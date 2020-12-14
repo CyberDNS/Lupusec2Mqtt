@@ -42,5 +42,10 @@ namespace Lupusec2Mqtt.Mqtt
                 _registrations[e.Topic].Invoke(Encoding.UTF8.GetString(e.Message));
             }
         }
+
+        public void Disconnect()
+        {
+            _client.Disconnect();
+        }
     }
 }

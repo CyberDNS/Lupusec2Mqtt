@@ -30,6 +30,8 @@ namespace Lupusec2Mqtt.Lupusec
         private int _logCounter = 0;
         private int _logEveryNCycle = 5;
 
+        private CancellationTokenSource _cancellationTokenSource;
+
         public PollingHostedService(ILogger<PollingHostedService> logger, ILupusecService lupusecService, IConfiguration configuration)
         {
             _logger = logger;
@@ -38,6 +40,8 @@ namespace Lupusec2Mqtt.Lupusec
 
             _conversionService = new ConversionService(_configuration);
             _mqttService = new MqttService(_configuration);
+
+            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
@@ -128,6 +132,8 @@ namespace Lupusec2Mqtt.Lupusec
         public Task StopAsync(CancellationToken stoppingToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
+
+            _mqttService.Disconnect();
 
             return Task.CompletedTask;
         }

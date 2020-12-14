@@ -51,12 +51,7 @@ namespace Lupusec2Mqtt
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureAppConfiguration(config =>
-                    {
-                        string hassConfigPath = @"/data/options.json";
-                        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"))) { hassConfigPath = Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"); }
-                        config.AddHomeassistantConfig(hassConfigPath);
-                    });
+                    webBuilder.ConfigureAppConfiguration(config => config.AddHomeassistantConfig());
                     webBuilder.UseStartup<Startup>();
                 });
 
@@ -66,13 +61,11 @@ namespace Lupusec2Mqtt
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true)
-            .AddEnvironmentVariables();
-
-            string hassConfigPath = @"/data/options.json";
-            if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"))) { hassConfigPath = Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"); }
-            config.AddHomeassistantConfig(hassConfigPath);
+            .AddEnvironmentVariables()
+            .AddHomeassistantConfig(logging: true);
 
             return config.Build();
         }
+
     }
 }
