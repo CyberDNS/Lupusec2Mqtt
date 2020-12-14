@@ -51,7 +51,12 @@ namespace Lupusec2Mqtt
                 .UseSerilog()
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    webBuilder.ConfigureAppConfiguration(c => BuildConfiguration());
+                    webBuilder.ConfigureAppConfiguration(config =>
+                    {
+                        string hassConfigPath = @"/data/options.json";
+                        if (!string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"))) { hassConfigPath = Environment.GetEnvironmentVariable("ASPNETCORE_HOMEASSISTANT__CONFIG"); }
+                        config.AddHomeassistantConfig(hassConfigPath);
+                    });
                     webBuilder.UseStartup<Startup>();
                 });
 
