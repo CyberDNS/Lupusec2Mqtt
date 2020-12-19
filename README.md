@@ -17,4 +17,5 @@ The docker image isn't anymore maintained, you can create your own docker image 
 - Burglar Alarm state (config, state)
 - Open/Close contacts (config, state)
 - Movement detector (config, state)
+- Power switch (config, state, set, consumption)
 - Smoke detector (config)
