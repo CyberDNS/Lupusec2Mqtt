@@ -32,6 +32,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             }
         }
 
+        public (Switch Switch, SwitchPowerSensor SwitchPowerSensor) GetDevice(PowerSwitch powerSwitch)
+        {
+            return (Switch: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
+        }
+
         public (AlarmControlPanel Area1, AlarmControlPanel Area2) GetDevice(PanelCondition panelCondition)
         {
             return (Area1: new AlarmControlPanel(_configuration, panelCondition, 1), Area2: new AlarmControlPanel(_configuration, panelCondition, 2));
@@ -51,6 +56,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 default:
                     return null;
             }
+        }
+
+        public (IStateProvider Switch, IStateProvider SwitchPowerSensor) GetStateProvider(PowerSwitch powerSwitch)
+        {
+            return (Switch: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
         }
     }
 }

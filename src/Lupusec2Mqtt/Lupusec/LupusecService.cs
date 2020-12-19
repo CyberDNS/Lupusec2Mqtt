@@ -43,6 +43,16 @@ namespace Lupusec2Mqtt.Lupusec
             return responseBody;
         }
 
+        public async Task<PowerSwitchList> GetPowerSwitches()
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceListPSSGet");
+            HttpResponseMessage response = await _client.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            PowerSwitchList responseBody = await response.Content.ReadAsAsync<PowerSwitchList>();
+
+            return responseBody;
+        }
+
         public async Task<PanelCondition> GetPanelConditionAsync()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondGet");
@@ -76,6 +86,35 @@ namespace Lupusec2Mqtt.Lupusec
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occured in SetAlarmMode");
+            }
+
+            return responseBody;
+        }
+
+        public async Task<ActionResult> SetSwitch(string uniqueId, bool onOff)
+        {
+            ActionResult responseBody = null;
+            try
+            {
+                IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                    { new KeyValuePair<string, string>("switch", $"{(onOff ? 1 : 0)}") },
+                    { new KeyValuePair<string, string>("pd", string.Empty) },
+                    { new KeyValuePair<string, string>("id", $"{uniqueId}") },
+                };
+
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceSwitchPSSPost");
+                request.Content = new FormUrlEncodedContent(formData);
+
+                HttpResponseMessage response = await _client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+
+                string result = await response.Content.ReadAsStringAsync();
+
+                responseBody = await response.Content.ReadAsAsync<ActionResult>();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An error occured in SetSwitch");
             }
 
             return responseBody;
