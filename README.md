@@ -8,6 +8,7 @@ The repository is: https://github.com/CyberDNS/hassio-addons-repository
 The docker image isn't anymore maintained, you can create your own docker image if needed (Dockerfile is still present in this project), otherwise if you are using Homeassistant, please migrate to my addon repository (link above).
 
 ## Tested with
+- XT1 Plus
 - XT2
 - XT2 Plus
 
