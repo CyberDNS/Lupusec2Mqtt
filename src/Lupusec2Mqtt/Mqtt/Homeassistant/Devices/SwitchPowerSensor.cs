@@ -30,7 +30,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             var match = Regex.Match(_powerSwitch.Status, @"{WEB_MSG_PSM_POWER}\s*(?'power'\d+\.?\d*)");
 
             if (match.Success) { return match.Groups["power"].Value; }
-            return null;
+            return "0";
         }
    
         public SwitchPowerSensor(IConfiguration configuration, PowerSwitch powerSwitch)

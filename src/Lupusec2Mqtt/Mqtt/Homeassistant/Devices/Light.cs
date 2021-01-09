@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Switch : Device, IDevice, IStateProvider, ISettable
+    public class Light : Device, IDevice, IStateProvider, ISettable
     {
         protected readonly PowerSwitch _powerSwitch;
 
@@ -19,14 +19,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         [JsonProperty("command_topic")]
         public string CommandTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/set");
 
-        protected override string _component => "switch";
+        protected override string _component => "light";
 
         [JsonIgnore]
         public string State => GetState();
 
         private string GetState()
         {
-            return _powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}") ? "ON" : "OFF";
+            return _powerSwitch.Status.Contains("{WEB_MSG_DIMMER_ON}") ? "ON" : "OFF";
         }
 
         public void SetState(string state, ILupusecService lupusecService)
@@ -34,7 +34,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             lupusecService.SetSwitch(UniqueId, state.Equals("on", StringComparison.OrdinalIgnoreCase));
         }
 
-        public Switch(IConfiguration configuration, PowerSwitch powerSwitch)
+
+        public Light(IConfiguration configuration, PowerSwitch powerSwitch)
         : base(configuration)
         {
             _powerSwitch = powerSwitch;
