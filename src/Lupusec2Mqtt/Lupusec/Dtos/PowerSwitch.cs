@@ -10,13 +10,13 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
     public class PowerSwitch
     {
         [JsonProperty("area")]
-        public long Area { get; set; }
+        public int Area { get; set; }
 
         [JsonProperty("zone")]
-        public long Zone { get; set; }
+        public int Zone { get; set; }
 
         [JsonProperty("type")]
-        public long Type { get; set; }
+        public int Type { get; set; }
 
         [JsonProperty("type_f")]
         public string TypeF { get; set; }
@@ -28,24 +28,43 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
         public string Id { get; set; }
 
         [JsonProperty("level")]
-        public long Level { get; set; }
+        public int Level { get; set; }
 
         [JsonProperty("consumer_id")]
-        public long ConsumerId { get; set; }
+        public int ConsumerId { get; set; }
 
         [JsonProperty("ammeter")]
-        public long Ammeter { get; set; }
+        public int Ammeter { get; set; }
 
         [JsonProperty("always_off")]
-        public long AlwaysOff { get; set; }
+        public int AlwaysOff { get; set; }
+
+        [JsonProperty("shutter_turn")]
+        public int ShutterTurn { get; set; }
 
         [JsonProperty("hue")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long Hue { get; set; }
+        public string Hue { get; set; }
 
         [JsonProperty("sat")]
-        [JsonConverter(typeof(ParseStringConverter))]
-        public long Sat { get; set; }
+        public string Sat { get; set; }
+
+        [JsonProperty("ctemp")]
+        public string Ctemp { get; set; }
+
+        [JsonProperty("hue_cmode")]
+        public string HueCmode { get; set; }
+
+        [JsonProperty("hue_cie_x")]
+        public string HueCieX { get; set; }
+
+        [JsonProperty("hue_cie_y")]
+        public string HueCieY { get; set; }
+
+        [JsonProperty("hue_color_cap")]
+        public string HueColorCap { get; set; }
+
+        [JsonProperty("nuki")]
+        public string Nuki { get; set; }
 
         [JsonProperty("status")]
         public string Status { get; set; }

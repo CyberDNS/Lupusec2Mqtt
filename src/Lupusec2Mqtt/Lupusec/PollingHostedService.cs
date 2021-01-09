@@ -78,10 +78,29 @@ namespace Lupusec2Mqtt.Lupusec
             {
                 var config = _conversionService.GetDevice(powerSwitch);
 
-                _mqttService.Register(config.Switch.CommandTopic, state => SetSwitch(config.Switch, state));
+                if (config.HasValue)
+                {
+                    _mqttService.Register(config.Value.Device.CommandTopic, state =>
+                    {
+                        try
+                        {
+                            _logger.LogInformation("Switch {UniqueId} {Name} set to {Status}", config.Value.Device.UniqueId, config.Value.Device.Name, state);
+                            config.Value.Device.SetState(state, _lupusecService);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "An error occured while setting switch {UniqueId} {Name} to {Status}", config.Value.Device.UniqueId, config.Value.Device.Name, state);
+                        }
+                    }
+                    );
 
-                _mqttService.Publish(config.Switch.ConfigTopic, JsonConvert.SerializeObject(config.Switch));
-                _mqttService.Publish(config.SwitchPowerSensor.ConfigTopic, JsonConvert.SerializeObject(config.SwitchPowerSensor));
+                    _mqttService.Publish(config.Value.Device.ConfigTopic, JsonConvert.SerializeObject(config.Value.Device));
+                    if (config.Value.SwitchPowerSensor != null) { _mqttService.Publish(config.Value.SwitchPowerSensor.ConfigTopic, JsonConvert.SerializeObject(config.Value.SwitchPowerSensor)); }
+                }
+                else
+                {
+                    _logger.LogInformation("Unknown power switch type {Type} detected", powerSwitch.Type);
+                }
             }
         }
 
@@ -130,8 +149,12 @@ namespace Lupusec2Mqtt.Lupusec
             foreach (var powerSwitch in powerSwitchList.PowerSwitches)
             {
                 var device = _conversionService.GetStateProvider(powerSwitch);
-                _mqttService.Publish(device.Switch.StateTopic, device.Switch.State);
-                _mqttService.Publish(device.SwitchPowerSensor.StateTopic, device.SwitchPowerSensor.State);
+
+                if (device.HasValue)
+                {
+                    _mqttService.Publish(device.Value.Device.StateTopic, device.Value.Device.State);
+                    if (device.Value.SwitchPowerSensor != null) { _mqttService.Publish(device.Value.SwitchPowerSensor.StateTopic, device.Value.SwitchPowerSensor.State); }
+                }
             }
         }
 
@@ -181,20 +204,6 @@ namespace Lupusec2Mqtt.Lupusec
                 _logger.LogError(ex, "An error occured while setting alarm mode to Area {Area} set to {Mode}", area, mode);
             }
         }
-
-        private void SetSwitch(Switch switchDevice, string state)
-        {
-            try
-            {
-                _logger.LogInformation("Switch {UniqueId} {Name} set to {Status}", switchDevice.UniqueId, switchDevice.Name, state);
-                _lupusecService.SetSwitch(switchDevice.UniqueId, state.Equals("on", StringComparison.OrdinalIgnoreCase));
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occured while setting switch {UniqueId} {Name} to {Status}", switchDevice.UniqueId, switchDevice.Name, state);
-            }
-        }
-
 
         public Task StopAsync(CancellationToken stoppingToken)
         {
