@@ -27,6 +27,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                     return new BinarySensor(_configuration, sensor);
                 case 48: // Power meter switch
                     return null;
+                case 57: // Nuki
                 default:
                     return null;
             }
@@ -40,6 +41,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                     return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
                 case 74:
                     return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
+                case 57: // Nuki
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
                 default:
                     return null;
             }
@@ -61,6 +64,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                     return new BinarySensor(_configuration, sensor, logRows);
                 case 48: // Power meter switch
                     return null;
+                case 57: // Nuki
                 default:
                     return null;
             }
@@ -74,6 +78,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                     return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
                 case 74:
                     return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
+                case 57: // Nuki
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
                 default:
                     return null;
             }
