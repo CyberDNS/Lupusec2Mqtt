@@ -26,8 +26,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 case 5: // Water detector
                     return new BinarySensor(_configuration, sensor);
                 case 48: // Power meter switch
-                    return null;
                 case 57: // Nuki
+                    return null;
+
                 default:
                     return null;
             }
@@ -63,8 +64,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 case 5: // Water detector
                     return new BinarySensor(_configuration, sensor, logRows);
                 case 48: // Power meter switch
-                    return null;
                 case 57: // Nuki
+                    return null;
                 default:
                     return null;
             }

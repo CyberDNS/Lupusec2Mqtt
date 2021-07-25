@@ -15,7 +15,7 @@ namespace Lupusec2Mqtt.Mqtt
         public MqttService(IConfiguration configuration)
         {
 
-            _client = new MqttClient(configuration["Mqtt:Server"], configuration.GetValue<int>("Mqtt:Port",1883), false, null, null, MqttSslProtocols.None);
+            _client = new MqttClient(configuration["Mqtt:Server"], configuration.GetValue("Mqtt:Port", 1883), false, null, null, MqttSslProtocols.None);
 
             _client.MqttMsgPublishReceived += MqttMsgPublishReceived;
             _client.Connect("Lupusec2Mqtt", configuration["Mqtt:Login"], configuration["Mqtt:Password"]);
