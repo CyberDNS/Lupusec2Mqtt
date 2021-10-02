@@ -1,15 +1,15 @@
-﻿using Lupusec2Mqtt.Lupusec;
-using Lupusec2Mqtt.Lupusec.Dtos;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Lupusec2Mqtt.Lupusec;
+using Lupusec2Mqtt.Lupusec.Dtos;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Switch : Device, IDevice, IStateProvider, ISettable
+    public class Lock : Device, IDevice, IStateProvider, ISettable
     {
         protected readonly PowerSwitch _powerSwitch;
 
@@ -19,32 +19,29 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         [JsonProperty("command_topic")]
         public string CommandTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/set");
 
-        protected override string _component => "switch";
+        protected override string _component => "lock";
 
         [JsonIgnore]
         public string State => GetState();
 
         private string GetState()
         {
-            if (_powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}"))
+            if (_powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}"))
             {
-                return "ON";
-            }else if (_powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}")) // Door-Switch Nuki Smart Lock
-            {
-                return "ON";
+                return "LOCKED";
             }
             else
             {
-                return "OFF";
+                return "UNLOCKED";
             }
         }
 
         public void SetState(string state, ILupusecService lupusecService)
         {
-            lupusecService.SetSwitch(UniqueId, state.Equals("on", StringComparison.OrdinalIgnoreCase));
+            lupusecService.SetSwitch(UniqueId, state.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
         }
 
-        public Switch(IConfiguration configuration, PowerSwitch powerSwitch)
+        public Lock(IConfiguration configuration, PowerSwitch powerSwitch)
         : base(configuration)
         {
             _powerSwitch = powerSwitch;
