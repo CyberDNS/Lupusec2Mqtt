@@ -16,15 +16,21 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             _configuration = configuration;
         }
 
-        public IDevice GetDevice(Sensor sensor)
+        public IEnumerable<IDevice> GetDevices(Sensor sensor)
         {
+            List<IDevice> list = new List<IDevice>();
             switch (sensor.TypeId)
             {
                 case 4: // Opener contact
                 case 9: // Motion detector
                 case 11: // Smoke detector
                 case 5: // Water detector
-                    return new BinarySensor(_configuration, sensor);
+                    list.Add(new BinarySensor(_configuration, sensor));
+                    return list;
+                case 54: // Temp/Humidity detector
+                    list.Add(new TemperatureSensor(_configuration, sensor));
+                    list.Add(new HumiditySensor(_configuration, sensor));
+                    return list;
                 case 48: // Power meter switch
                 case 57: // Nuki
                     return null;
@@ -54,15 +60,21 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             return (Area1: new AlarmControlPanel(_configuration, panelCondition, 1), Area2: new AlarmControlPanel(_configuration, panelCondition, 2));
         }
 
-        public IStateProvider GetStateProvider(Sensor sensor, IEnumerable<Logrow> logRows)
+        public IEnumerable<IStateProvider> GetStateProviders(Sensor sensor, IEnumerable<Logrow> logRows)
         {
+            List<IStateProvider> list = new List<IStateProvider>();
             switch (sensor.TypeId)
             {
                 case 4: // Opener contact
                 case 9: // Motion detector
                 case 11: // Smoke detector
                 case 5: // Water detector
-                    return new BinarySensor(_configuration, sensor, logRows);
+                    list.Add(new BinarySensor(_configuration, sensor, logRows));
+                    return list;
+                case 54: // Temp/Humidity detector
+                    list.Add(new TemperatureSensor(_configuration, sensor, logRows));
+                    list.Add(new HumiditySensor(_configuration, sensor, logRows));
+                    return list;
                 case 48: // Power meter switch
                 case 57: // Nuki
                     return null;

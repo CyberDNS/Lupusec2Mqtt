@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -59,8 +60,14 @@ namespace Lupusec2Mqtt.Lupusec
 
             foreach (var sensor in response.Sensors)
             {
-                IDevice config = _conversionService.GetDevice(sensor);
-                if (config != null) { _mqttService.Publish(config.ConfigTopic, JsonConvert.SerializeObject(config)); }
+                IEnumerable<IDevice> configs = _conversionService.GetDevices(sensor);
+                if (configs != null) 
+                {
+                    foreach (var config in configs)
+                    {
+                        if (config != null) { _mqttService.Publish(config.ConfigTopic, JsonConvert.SerializeObject(config)); }
+                    }
+                }
             }
 
             AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
@@ -168,8 +175,22 @@ namespace Lupusec2Mqtt.Lupusec
 
             foreach (var sensor in sensorList.Sensors)
             {
-                IStateProvider device = _conversionService.GetStateProvider(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
-                if (device != null) { _mqttService.Publish(device.StateTopic, device.State); }
+                _logger.LogDebug("Handling sensor of type {sensorType}", sensor.TypeId);
+                IEnumerable<IStateProvider> devices = _conversionService.GetStateProviders(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
+
+                if (devices != null)
+                {
+                    _logger.LogDebug("Received {countDevices} devices", devices.Count());
+                    foreach (var device in devices)
+                    {
+                        if (device != null)
+                        {
+                            _logger.LogDebug("Publish {deviceName} device", device.Name);
+                            _mqttService.Publish(device.StateTopic, device.State);
+                        }
+                    }
+                }
+                
             }
 
             AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
