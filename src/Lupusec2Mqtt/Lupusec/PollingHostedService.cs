@@ -61,12 +61,9 @@ namespace Lupusec2Mqtt.Lupusec
             foreach (var sensor in response.Sensors)
             {
                 IEnumerable<IDevice> configs = _conversionService.GetDevices(sensor);
-                if (configs != null) 
+                foreach (var config in configs)
                 {
-                    foreach (var config in configs)
-                    {
-                        if (config != null) { _mqttService.Publish(config.ConfigTopic, JsonConvert.SerializeObject(config)); }
-                    }
+                    _mqttService.Publish(config.ConfigTopic, JsonConvert.SerializeObject(config));
                 }
             }
 
@@ -178,19 +175,12 @@ namespace Lupusec2Mqtt.Lupusec
                 _logger.LogDebug("Handling sensor of type {sensorType}", sensor.TypeId);
                 IEnumerable<IStateProvider> devices = _conversionService.GetStateProviders(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
 
-                if (devices != null)
+                _logger.LogDebug("Received {countDevices} devices", devices.Count());
+                foreach (var device in devices)
                 {
-                    _logger.LogDebug("Received {countDevices} devices", devices.Count());
-                    foreach (var device in devices)
-                    {
-                        if (device != null)
-                        {
-                            _logger.LogDebug("Publish {deviceName} device", device.Name);
-                            _mqttService.Publish(device.StateTopic, device.State);
-                        }
-                    }
+                    _logger.LogDebug("Publish {deviceName} device", device.Name);
+                    _mqttService.Publish(device.StateTopic, device.State);
                 }
-                
             }
 
             AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);

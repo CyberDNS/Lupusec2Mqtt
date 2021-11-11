@@ -19,6 +19,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
         public IEnumerable<IDevice> GetDevices(Sensor sensor)
         {
             List<IDevice> list = new List<IDevice>();
+
             switch (sensor.TypeId)
             {
                 case 4: // Opener contact
@@ -26,14 +27,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 case 11: // Smoke detector
                 case 5: // Water detector
                     list.Add(new BinarySensor(_configuration, sensor));
-                    return list;
-                case 54: // Temp/Humidity detector
+                    break;
+                case 54: // Temperature/Humidity detector
                     list.Add(new TemperatureSensor(_configuration, sensor));
                     list.Add(new HumiditySensor(_configuration, sensor));
-                    return list;
-                default:
-                    return null;
+                    break;
             }
+
+            return list;
         }
 
         public (ISettable Device, SwitchPowerSensor SwitchPowerSensor)? GetDevice(PowerSwitch powerSwitch)
@@ -59,6 +60,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
         public IEnumerable<IStateProvider> GetStateProviders(Sensor sensor, IEnumerable<Logrow> logRows)
         {
             List<IStateProvider> list = new List<IStateProvider>();
+
             switch (sensor.TypeId)
             {
                 case 4: // Opener contact
@@ -66,14 +68,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 case 11: // Smoke detector
                 case 5: // Water detector
                     list.Add(new BinarySensor(_configuration, sensor, logRows));
-                    return list;
-                case 54: // Temp/Humidity detector
+                    break;
+                case 54: // Temperature/Humidity detector
                     list.Add(new TemperatureSensor(_configuration, sensor, logRows));
                     list.Add(new HumiditySensor(_configuration, sensor, logRows));
-                    return list;
-                default:
-                    return null;
+                    break;
             }
+
+            return list;
         }
 
         public (IStateProvider Device, IStateProvider SwitchPowerSensor)? GetStateProvider(PowerSwitch powerSwitch)
