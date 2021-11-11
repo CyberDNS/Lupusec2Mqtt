@@ -31,10 +31,6 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                     list.Add(new TemperatureSensor(_configuration, sensor));
                     list.Add(new HumiditySensor(_configuration, sensor));
                     return list;
-                case 48: // Power meter switch
-                case 57: // Nuki
-                    return null;
-
                 default:
                     return null;
             }
@@ -44,12 +40,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
         {
             switch (powerSwitch.Type)
             {
-                case 48:
+                case 48: // Power meter switch
                     return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
-                case 74:
+                case 74: // Light switch
                     return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
-                case 57: // Nuki
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
+                case 57: // Smart Lock
+                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null);
                 default:
                     return null;
             }
@@ -75,9 +71,6 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                     list.Add(new TemperatureSensor(_configuration, sensor, logRows));
                     list.Add(new HumiditySensor(_configuration, sensor, logRows));
                     return list;
-                case 48: // Power meter switch
-                case 57: // Nuki
-                    return null;
                 default:
                     return null;
             }
@@ -87,12 +80,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
         {
             switch (powerSwitch.Type)
             {
-                case 48:
+                case 48: // Power meter switch
                     return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
-                case 74:
+                case 74: // Light switch
                     return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
-                case 57: // Nuki
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
+                case 57: // Smart Lock
+                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null);
                 default:
                     return null;
             }

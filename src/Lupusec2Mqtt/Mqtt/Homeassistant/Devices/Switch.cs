@@ -26,7 +26,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         private string GetState()
         {
-            return _powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}") ? "ON" : "OFF";
+            if (_powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}")) { return "ON"; } 
+            else { return "OFF"; }
         }
 
         public void SetState(string state, ILupusecService lupusecService)
