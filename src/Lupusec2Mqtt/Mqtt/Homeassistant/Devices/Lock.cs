@@ -24,6 +24,15 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         [JsonIgnore]
         public string State => GetState();
 
+        public Lock(IConfiguration configuration, PowerSwitch powerSwitch)
+            : base(configuration)
+        {
+            _powerSwitch = powerSwitch;
+
+            UniqueId = _powerSwitch.Id;
+            Name = GetValue(nameof(Name), _powerSwitch.Name);
+        }
+
         private string GetState()
         {
             if (_powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}"))
@@ -39,15 +48,6 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public void SetState(string state, ILupusecService lupusecService)
         {
             lupusecService.SetSwitch(UniqueId, state.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
-        }
-
-        public Lock(IConfiguration configuration, PowerSwitch powerSwitch)
-        : base(configuration)
-        {
-            _powerSwitch = powerSwitch;
-
-            UniqueId = _powerSwitch.Id;
-            Name = GetValue(nameof(Name), _powerSwitch.Name);
         }
     }
 }

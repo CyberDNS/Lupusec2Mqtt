@@ -39,7 +39,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 case 74: // Light switch
                     return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
                 case 57: // Smart Lock
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null);
                 default:
                     return null;
             }
@@ -73,7 +73,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
                 case 74: // Light switch
                     return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
                 case 57: // Smart Lock
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null);
                 default:
                     return null;
             }
