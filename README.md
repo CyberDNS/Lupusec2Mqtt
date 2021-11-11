@@ -19,4 +19,6 @@ The docker image isn't anymore maintained, you can create your own docker image 
 - Open/Close contacts (config, state)
 - Movement detector (config, state)
 - Power switch (config, state, set, consumption)
+- Lock (config, state, set)
+- Temperature/Humidity sensor (config, state)
 - Smoke detector (config)
