@@ -26,17 +26,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         private string GetState()
         {
-            if (_powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}"))
-            {
-                return "ON";
-            }else if (_powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}")) // Door-Switch Nuki Smart Lock
-            {
-                return "ON";
-            }
-            else
-            {
-                return "OFF";
-            }
+            if (_powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}")) { return "ON"; } 
+            else { return "OFF"; }
         }
 
         public void SetState(string state, ILupusecService lupusecService)
