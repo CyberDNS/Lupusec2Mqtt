@@ -40,7 +40,7 @@ namespace Lupusec2Mqtt.Lupusec
             _configuration = configuration;
 
             _conversionService = new ConversionService(_configuration);
-            _mqttService = new MqttService(_configuration);
+            _mqttService = new MqttService(_configuration, logger);
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
@@ -148,7 +148,7 @@ namespace Lupusec2Mqtt.Lupusec
         private async Task PublishPowerSwitches()
         {
             PowerSwitchList powerSwitchList = await _lupusecService.GetPowerSwitches();
-            _logger.LogDebug("Received {countPowerSwitches} power switches", powerSwitchList.PowerSwitches.Count());
+            _logger.LogDebug($"Received {powerSwitchList.PowerSwitches.Length} power switches");
 
             foreach (var powerSwitch in powerSwitchList.PowerSwitches)
             {
@@ -156,8 +156,8 @@ namespace Lupusec2Mqtt.Lupusec
 
                 if (device.HasValue)
                 {
-                    _mqttService.Publish(device.Value.Device.StateTopic, device.Value.Device.State);
-                    if (device.Value.SwitchPowerSensor != null) { _mqttService.Publish(device.Value.SwitchPowerSensor.StateTopic, device.Value.SwitchPowerSensor.State); }
+                    _mqttService.Publish(device.Value.Device.StateTopic, device.Value.Device?.State??"OFF");
+                    if (device.Value.SwitchPowerSensor != null) { _mqttService.Publish(device.Value.SwitchPowerSensor.StateTopic, device.Value.SwitchPowerSensor?.State??"OFF"); }
                 }
             }
         }

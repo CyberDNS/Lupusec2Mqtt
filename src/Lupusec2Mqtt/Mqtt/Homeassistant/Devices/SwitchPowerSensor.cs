@@ -32,14 +32,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             if (match.Success) { return match.Groups["power"].Value; }
             return "0";
         }
-   
+
         public SwitchPowerSensor(IConfiguration configuration, PowerSwitch powerSwitch)
        : base(configuration)
         {
             _powerSwitch = powerSwitch;
 
             UniqueId = $"{_powerSwitch.Id}_power";
-            Name = GetValue(nameof(Name), $"{_powerSwitch.Name} - Power");
+            Name = GetValue(nameof(Name), $"{_powerSwitch?.Name??_powerSwitch.Id} - Power");
         }
     }
 }
