@@ -6,6 +6,8 @@ using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+
 namespace Lupusec2Mqtt.Mqtt
 {
     public class MqttService
@@ -27,7 +29,7 @@ namespace Lupusec2Mqtt.Mqtt
             _client.Subscribe(new string[] { "/home/temperature" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
         }
 
-        public void Publish(string topic, string payload)
+        public void Publish(string topic, object payload)
         {
             if(payload==null){
                 _logger.LogError("payload is null!");
@@ -35,14 +37,19 @@ namespace Lupusec2Mqtt.Mqtt
             if(topic==null){
                 _logger.LogError("topic is null!");
             }
+                string convertedPayload=null;
             try{
-                _client.Publish(topic, Encoding.UTF8.GetBytes(payload), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+                if(payload is string castedValue){
+                    convertedPayload=castedValue;
+                }else{
+                    convertedPayload=JsonConvert.SerializeObject(payload);
+                }
+                _client.Publish(topic, Encoding.UTF8.GetBytes(convertedPayload??""), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
             }catch(Exception ex){
-                _logger.LogError(ex,"Error during firing a event! This will be ignored but not unlogged!");
+                _logger.LogError(ex,"Error during firing a event! This will be ignored but not unlogged! topic was {topic} with payload:\n{payload}",topic,convertedPayload);
             }
 
         }
-
         public void Register(string topic, Action<string> callback)
         {
             if (!_registrations.ContainsKey(topic)) { _registrations.Add(topic, null); }

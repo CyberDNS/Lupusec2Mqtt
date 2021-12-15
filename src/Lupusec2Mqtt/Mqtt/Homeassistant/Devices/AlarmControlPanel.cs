@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class AlarmControlPanel : Device, IDevice, IStateProvider
+    public class AlarmControlPanel : Device, IStateProvider
     {
         protected override string _component => "alarm_control_panel";
 
@@ -45,9 +45,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         {
             switch (_panelConditionForm.mode)
             {
-                case AlarmMode.Disarmed: 
+                case AlarmMode.Disarmed:
                     return "disarmed";
-                case AlarmMode.FullArm: 
+                case AlarmMode.FullArm:
                     return "armed_away";
                 case AlarmMode.HomeArm1:
                     return "armed_night";
@@ -55,7 +55,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 case AlarmMode.HomeArm3:
                     return "armed_home";
                 default:
-                    return null;
+                    return "unkown";
             }
         }
     }

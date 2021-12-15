@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class AlarmBinarySensor : Device, IDevice, IStateProvider
+    public class AlarmBinarySensor : Device, IStateProvider
     {
         protected readonly int _area;
 

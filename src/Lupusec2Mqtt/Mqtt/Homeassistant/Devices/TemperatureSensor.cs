@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class TemperatureSensor : Device, IDevice, IStateProvider
+    public class TemperatureSensor : Device, IStateProvider
     {
         protected readonly Sensor _sensor;
         protected readonly IEnumerable<Logrow> _logRows;
@@ -42,8 +42,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             _logRows = logRows;
 
             UniqueId = _sensor.SensorId + "TEMPERATURE";
-            Name = GetValue(nameof(Name), sensor.Name + " - Temperature");
-            DeviceClass = GetValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
+            Name = GetMappingValue(nameof(Name), sensor.Name + " - Temperature");
+            DeviceClass = GetMappingValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
         }
 
         private string GetDeviceClassDefaultValue()

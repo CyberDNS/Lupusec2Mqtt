@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Lock : Device, IDevice, IStateProvider, ISettable
+    public class Lock : Device, IStateProvider, ISettable
     {
         protected readonly PowerSwitch _powerSwitch;
 
@@ -30,7 +30,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             _powerSwitch = powerSwitch;
 
             UniqueId = _powerSwitch.Id;
-            Name = GetValue(nameof(Name), _powerSwitch.Name);
+            Name = GetMappingValue(nameof(Name), _powerSwitch.Name);
         }
 
         private string GetState()

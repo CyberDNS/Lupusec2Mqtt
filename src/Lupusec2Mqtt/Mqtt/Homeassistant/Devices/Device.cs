@@ -23,12 +23,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public Device(IConfiguration configuration)
         {
             _configuration = configuration;
-
         }
-
-        protected string GetValue(string property, string defaultValue)
+        protected T GetValue<T>(string property,T defaultValue)
         {
-            return _configuration[$"Mappings:{UniqueId}:{property}"] ?? defaultValue;
+            return _configuration.GetValue<T>($"{property}",defaultValue);
+        }
+        protected string GetMappingValue(string property, string defaultValue)
+        {
+            return GetValue<string>($"Mappings:{UniqueId}:{property}",defaultValue);
         }
 
         protected string EscapeTopic(string topic)

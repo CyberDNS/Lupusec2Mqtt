@@ -39,7 +39,7 @@ namespace Lupusec2Mqtt.Lupusec
             _lupusecService = lupusecService;
             _configuration = configuration;
 
-            _conversionService = new ConversionService(_configuration);
+            _conversionService = new ConversionService(_configuration,logger);
             _mqttService = new MqttService(_configuration, logger);
 
             _cancellationTokenSource = new CancellationTokenSource();
@@ -60,18 +60,23 @@ namespace Lupusec2Mqtt.Lupusec
 
             foreach (var sensor in response.Sensors)
             {
-                IEnumerable<IDevice> configs = _conversionService.GetDevices(sensor);
-                foreach (var config in configs)
-                {
-                    _mqttService.Publish(config.ConfigTopic, JsonConvert.SerializeObject(config));
-                }
+                ConfigureSensor(sensor);
             }
 
             AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
             AlarmBinarySensor alarmBinarySensorArea2 = new AlarmBinarySensor(_configuration, 2);
 
-            _mqttService.Publish(alarmBinarySensorArea1.ConfigTopic, JsonConvert.SerializeObject(alarmBinarySensorArea1));
-            _mqttService.Publish(alarmBinarySensorArea2.ConfigTopic, JsonConvert.SerializeObject(alarmBinarySensorArea2));
+            _mqttService.Publish(alarmBinarySensorArea1.ConfigTopic, alarmBinarySensorArea1);
+            _mqttService.Publish(alarmBinarySensorArea2.ConfigTopic, alarmBinarySensorArea2);
+        }
+
+        private void ConfigureSensor(Sensor sensor)
+        {
+            IEnumerable<IDevice> configs = _conversionService.GetDevices(sensor);
+            foreach (var config in configs)
+            {
+                _mqttService.Publish(config.ConfigTopic, config);
+            }
         }
 
         private async Task ConfigurePowerSwitches()
@@ -80,34 +85,40 @@ namespace Lupusec2Mqtt.Lupusec
 
             foreach (var powerSwitch in response.PowerSwitches)
             {
-                var config = _conversionService.GetDevice(powerSwitch);
-
-                if (config.HasValue)
-                {
-                    _mqttService.Register(config.Value.Device.CommandTopic, state =>
-                    {
-                        try
-                        {
-                            _logger.LogInformation("Switch {UniqueId} {Name} set to {Status}", config.Value.Device.UniqueId, config.Value.Device.Name, state);
-                            config.Value.Device.SetState(state, _lupusecService);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "An error occured while setting switch {UniqueId} {Name} to {Status}", config.Value.Device.UniqueId, config.Value.Device.Name, state);
-                        }
-                    }
-                    );
-
-                    _mqttService.Publish(config.Value.Device.ConfigTopic, JsonConvert.SerializeObject(config.Value.Device));
-                    if (config.Value.SwitchPowerSensor != null) { _mqttService.Publish(config.Value.SwitchPowerSensor.ConfigTopic, JsonConvert.SerializeObject(config.Value.SwitchPowerSensor)); }
-                }
-                else
-                {
-                    _logger.LogInformation("Unknown power switch type {Type} detected", powerSwitch.Type);
-                }
+                ConfigurePowerSwitch(powerSwitch);
             }
         }
 
+        private void ConfigurePowerSwitch(PowerSwitch powerSwitch)
+        {
+            (ISettable Device, IDevice SwitchPowerSensor)? config = _conversionService.GetDevice(powerSwitch);
+
+            if (config.HasValue)
+            {
+                _mqttService.Register(config.Value.Device.CommandTopic, state =>
+                {
+                    try
+                    {
+                        _logger.LogInformation("Switch {UniqueId} {Name} set to {Status}", config.Value.Device.UniqueId, config.Value.Device.Name, state);
+                        config.Value.Device.SetState(state, _lupusecService);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "An error occured while setting switch {UniqueId} {Name} to {Status}", config.Value.Device.UniqueId, config.Value.Device.Name, state);
+                    }
+                }
+                );
+
+                _mqttService.Publish(config.Value.Device.ConfigTopic,config.Value.Device);
+                if (config.Value.SwitchPowerSensor != null) {
+                    _mqttService.Publish(config.Value.SwitchPowerSensor.ConfigTopic,config.Value.SwitchPowerSensor);
+                }
+            }
+            else
+            {
+                _logger.LogInformation("Unknown power switch type {Type} detected", powerSwitch.Type);
+            }
+        }
 
         private async Task ConfigureAlarmPanels()
         {
@@ -117,8 +128,8 @@ namespace Lupusec2Mqtt.Lupusec
             _mqttService.Register(panelConditions.Area1.CommandTopic, mode => { SetAlarm(1, mode); });
             _mqttService.Register(panelConditions.Area2.CommandTopic, mode => { SetAlarm(2, mode); });
 
-            _mqttService.Publish(panelConditions.Area1.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area1));
-            _mqttService.Publish(panelConditions.Area2.ConfigTopic, JsonConvert.SerializeObject(panelConditions.Area2));
+            _mqttService.Publish(panelConditions.Area1.ConfigTopic, panelConditions.Area1);
+            _mqttService.Publish(panelConditions.Area2.ConfigTopic, panelConditions.Area2);
         }
 
 
@@ -152,12 +163,19 @@ namespace Lupusec2Mqtt.Lupusec
 
             foreach (var powerSwitch in powerSwitchList.PowerSwitches)
             {
-                var device = _conversionService.GetStateProvider(powerSwitch);
+                PublishPowerSwitch(powerSwitch);
+            }
+        }
 
-                if (device.HasValue)
-                {
-                    _mqttService.Publish(device.Value.Device.StateTopic, device.Value.Device?.State??"OFF");
-                    if (device.Value.SwitchPowerSensor != null) { _mqttService.Publish(device.Value.SwitchPowerSensor.StateTopic, device.Value.SwitchPowerSensor?.State??"OFF"); }
+        private void PublishPowerSwitch(PowerSwitch powerSwitch)
+        {
+            var device = _conversionService.GetStateProvider(powerSwitch);
+
+            if (device.HasValue)
+            {
+                _mqttService.Publish(device.Value.Device.StateTopic, device.Value.Device.State);
+                if (device.Value.SwitchPowerSensor != null) {
+                     _mqttService.Publish(device.Value.SwitchPowerSensor.StateTopic, device.Value.SwitchPowerSensor.State);
                 }
             }
         }
@@ -172,15 +190,7 @@ namespace Lupusec2Mqtt.Lupusec
 
             foreach (var sensor in sensorList.Sensors)
             {
-                _logger.LogDebug("Handling sensor of type {sensorType}", sensor.TypeId);
-                IEnumerable<IStateProvider> devices = _conversionService.GetStateProviders(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
-
-                _logger.LogDebug("Received {countDevices} devices", devices.Count());
-                foreach (var device in devices)
-                {
-                    _logger.LogDebug("Publish {deviceName} device", device.Name);
-                    _mqttService.Publish(device.StateTopic, device.State);
-                }
+                PublishSensor(recordList, sensor);
             }
 
             AlarmBinarySensor alarmBinarySensorArea1 = new AlarmBinarySensor(_configuration, 1);
@@ -191,6 +201,19 @@ namespace Lupusec2Mqtt.Lupusec
 
             _mqttService.Publish(alarmBinarySensorArea1.StateTopic, alarmBinarySensorArea1.State);
             _mqttService.Publish(alarmBinarySensorArea2.StateTopic, alarmBinarySensorArea2.State);
+        }
+
+        private void PublishSensor(RecordList recordList, Sensor sensor)
+        {
+            _logger.LogDebug("Handling sensor of type {sensorType}", sensor.TypeId);
+            IEnumerable<IStateProvider> devices = _conversionService.GetStateProviders(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
+
+            _logger.LogDebug("Received {countDevices} devices", devices.Count());
+            foreach (var device in devices)
+            {
+                _logger.LogDebug("Publish {deviceName} device", device.Name);
+                _mqttService.Publish(device.StateTopic, device.State);
+            }
         }
 
         private async Task PublishAlarmPanels()

@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class HumiditySensor: Device, IDevice, IStateProvider
+    public class HumiditySensor: Device, IStateProvider
     {
         protected readonly Sensor _sensor;
         protected readonly IEnumerable<Logrow> _logRows;
@@ -30,9 +30,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         private string GetState()
         {
             var match = Regex.Match(_sensor.Status, @"{WEB_MSG_RH_HUMIDITY}\s*(?'value'\d+\.?\d*)");
-
-            if (match.Success) { return match.Groups["value"].Value; }
-            return "0";
+            return match.Success?
+            match.Groups["value"].Value:
+            "0";
         }
 
         public HumiditySensor(IConfiguration configuration, Sensor sensor, IEnumerable<Logrow> logRows = default)
@@ -40,10 +40,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         {
             _sensor = sensor;
             _logRows = logRows;
-
             UniqueId = _sensor.SensorId + "HUMIDITY";
-            Name = GetValue(nameof(Name), sensor.Name + " - Humidity");
-            DeviceClass = GetValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
+            Name = GetMappingValue(nameof(Name), sensor.Name + " - Humidity");
+            DeviceClass = GetMappingValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
         }
 
         private string GetDeviceClassDefaultValue()

@@ -7,7 +7,7 @@ using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class BinarySensor : Device, IDevice, IStateProvider
+    public class BinarySensor : Device, IStateProvider
     {
         protected readonly Sensor _sensor;
         protected readonly IEnumerable<Logrow> _logRows;
@@ -33,14 +33,13 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                     var matchingEvent = _logRows.Where(r => r.Event.StartsWith("{ALARM_HISTORY_20}"))
                         .OrderByDescending(r => r.UtcDateTime)
                         .FirstOrDefault(r => (DateTime.UtcNow - r.UtcDateTime) <= TimeSpan.FromSeconds(_configuration.GetValue<int>("MotionSensor:DetectionDuration")));
-
                     return matchingEvent != null ? "ON" : "OFF";
                 case 11: // Smoke detector
                     return _sensor.Status == "{RPT_CID_111}" ? "ON" : "OFF";
                 case 5: // Water detector
                     return "OFF";
                 default:
-                    return null;
+                    return "unknown";
             }
         }
 
@@ -51,8 +50,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             _logRows = logRows;
 
             UniqueId = _sensor.SensorId;
-            Name = GetValue(nameof(Name), sensor.Name);
-            DeviceClass = GetValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
+            Name = GetMappingValue(nameof(Name), sensor.Name);
+            DeviceClass = GetMappingValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
         }
 
         private string GetDeviceClassDefaultValue()
@@ -68,7 +67,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 case 5:
                     return "moisture";
                 default:
-                    return null;
+                    return "unknown";
             }
         }
     }
