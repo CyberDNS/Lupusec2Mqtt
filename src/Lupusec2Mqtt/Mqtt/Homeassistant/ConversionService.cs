@@ -42,6 +42,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
         {
             switch (powerSwitch.Type)
             {
+                case 24: // Wall switch
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
                 case 48: // Power meter switch
                     return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
                 case 74: // Light switch
@@ -84,6 +86,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
         {
             switch (powerSwitch.Type)
             {
+                case 24: // Wall switch
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
                 case 48: // Power meter switch
                     return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
                 case 74: // Light switch
