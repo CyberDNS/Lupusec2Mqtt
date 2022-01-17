@@ -148,7 +148,7 @@ namespace Lupusec2Mqtt.Lupusec
         private async Task PublishPowerSwitches()
         {
             PowerSwitchList powerSwitchList = await _lupusecService.GetPowerSwitches();
-            _logger.LogDebug("Received {countPowerSwitches} power switches", powerSwitchList.PowerSwitches.Count());
+            _logger.LogDebug("Received {countPowerSwitches} power switches", powerSwitchList.PowerSwitches.Length);
 
             foreach (var powerSwitch in powerSwitchList.PowerSwitches)
             {
@@ -165,7 +165,7 @@ namespace Lupusec2Mqtt.Lupusec
         private async Task PublishSensors()
         {
             SensorList sensorList = await _lupusecService.GetSensorsAsync();
-            _logger.LogDebug("Received {countSensors} sensors", sensorList.Sensors.Count());
+            _logger.LogDebug("Received {countSensors} sensors", sensorList.Sensors.Count);
 
             RecordList recordList = await _lupusecService.GetRecordsAsync();
             _logger.LogDebug("Received records");
@@ -173,9 +173,10 @@ namespace Lupusec2Mqtt.Lupusec
             foreach (var sensor in sensorList.Sensors)
             {
                 _logger.LogDebug("Handling sensor of type {sensorType}", sensor.TypeId);
-                IEnumerable<IStateProvider> devices = _conversionService.GetStateProviders(sensor, recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray());
+                var records=recordList.Logrows.Where(r => r.Sid.Equals(sensor.SensorId)).ToArray();
+                IList<IStateProvider> devices = _conversionService.GetStateProviders(sensor, records);
 
-                _logger.LogDebug("Received {countDevices} devices", devices.Count());
+                _logger.LogDebug("Received {countDevices} devices", devices.Count);
                 foreach (var device in devices)
                 {
                     _logger.LogDebug("Publish {deviceName} device", device.Name);

@@ -10,6 +10,6 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
     public class SensorList
     {
         [JsonProperty("senrows")]
-        public IEnumerable<Sensor> Sensors;
+        public IList<Sensor> Sensors;
     }
 }

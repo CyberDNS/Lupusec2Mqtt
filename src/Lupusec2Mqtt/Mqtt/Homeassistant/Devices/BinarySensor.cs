@@ -10,7 +10,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
     public class BinarySensor : Device, IDevice, IStateProvider
     {
         protected readonly Sensor _sensor;
-        protected readonly IEnumerable<Logrow> _logRows;
+        protected readonly IList<Logrow> _logRows;
 
         [JsonProperty("device_class")]
         public string DeviceClass { get; set; }
@@ -44,11 +44,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             }
         }
 
-        public BinarySensor(IConfiguration configuration, Sensor sensor, IEnumerable<Logrow> logRows = default)
+        public BinarySensor(IConfiguration configuration, Sensor sensor, IList<Logrow> logRows = default)
         : base(configuration)
         {
             _sensor = sensor;
-            _logRows = logRows;
+            _logRows = logRows??new Logrow[0];
 
             UniqueId = _sensor.SensorId;
             Name = GetValue(nameof(Name), sensor.Name);
