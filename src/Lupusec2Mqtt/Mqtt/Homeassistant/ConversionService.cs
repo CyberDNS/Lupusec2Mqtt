@@ -23,6 +23,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             switch (sensor.TypeId)
             {
                 case 4: // Opener contact
+               case 33: // Opener contact XT2
                 case 9: // Motion detector
                 case 11: // Smoke detector
                 case 5: // Water detector
@@ -64,10 +65,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             switch (sensor.TypeId)
             {
                 case 4: // Opener contact
+                case 33: // Opener contact XT2
                 case 9: // Motion detector
                 case 11: // Smoke detector
                 case 5: // Water detector
-                    list.Add(new BinarySensor(_configuration, sensor, logRows));
+                     list.Add(new BinarySensor(_configuration, sensor, logRows));
                     break;
                 case 54: // Temperature/Humidity detector
                     list.Add(new TemperatureSensor(_configuration, sensor, logRows));
