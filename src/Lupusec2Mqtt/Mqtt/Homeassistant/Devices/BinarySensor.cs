@@ -10,7 +10,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
     public class BinarySensor : Device, IDevice, IStateProvider
     {
         protected readonly Sensor _sensor;
-        protected readonly IEnumerable<Logrow> _logRows;
+        protected readonly IList<Logrow> _logRows;
 
         [JsonProperty("device_class")]
         public string DeviceClass { get; set; }
@@ -28,6 +28,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             switch (_sensor.TypeId)
             {
                 case 4: // Opener contact
+                case 33: // Opener contact XT2
                     return _sensor.Status == "{WEB_MSG_DC_OPEN}" ? "ON" : "OFF";
                 case 9: // Motion detector
                     var matchingEvent = _logRows.Where(r => r.Event.StartsWith("{ALARM_HISTORY_20}"))
@@ -44,11 +45,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             }
         }
 
-        public BinarySensor(IConfiguration configuration, Sensor sensor, IEnumerable<Logrow> logRows = default)
+        public BinarySensor(IConfiguration configuration, Sensor sensor, IList<Logrow> logRows = default)
         : base(configuration)
         {
             _sensor = sensor;
-            _logRows = logRows;
+            _logRows = logRows??new Logrow[0];
 
             UniqueId = _sensor.SensorId;
             Name = GetValue(nameof(Name), sensor.Name);
@@ -59,7 +60,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         {
             switch (_sensor.TypeId)
             {
-                case 4:
+
+                case 4: // Opener contact
+                case 33: // Opener contact XT2:
                     return "window";
                 case 9:
                     return "motion";

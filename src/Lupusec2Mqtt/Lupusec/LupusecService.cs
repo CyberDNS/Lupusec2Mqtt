@@ -26,98 +26,77 @@ namespace Lupusec2Mqtt.Lupusec
         public async Task<SensorList> GetSensorsAsync()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceListGet");
-            HttpResponseMessage response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            SensorList responseBody = await response.Content.ReadAsAsync<SensorList>();
-
+            SensorList responseBody = await SendRequest<SensorList>(request);
             return responseBody;
         }
 
         public async Task<RecordList> GetRecordsAsync()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/recordListGet");
-            HttpResponseMessage response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            RecordList responseBody = await response.Content.ReadAsAsync<RecordList>();
-
+            RecordList responseBody = await SendRequest<RecordList>(request);
             return responseBody;
         }
 
         public async Task<PowerSwitchList> GetPowerSwitches()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceListPSSGet");
-            HttpResponseMessage response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            PowerSwitchList responseBody = await response.Content.ReadAsAsync<PowerSwitchList>();
-
+            PowerSwitchList responseBody = await SendRequest<PowerSwitchList>(request);
             return responseBody;
         }
 
         public async Task<PanelCondition> GetPanelConditionAsync()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondGet");
-            HttpResponseMessage response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
-            PanelCondition responseBody = await response.Content.ReadAsAsync<PanelCondition>();
-
+            PanelCondition responseBody = await SendRequest<PanelCondition>(request);
             return responseBody;
         }
 
         public async Task<ActionResult> SetAlarmMode(int area, AlarmMode mode)
         {
-            ActionResult responseBody = null;
-            try
-            {
-                IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
-                    { new KeyValuePair<string, string>("area", $"{area}") },
-                    { new KeyValuePair<string, string>("mode", $"{(byte)mode}") },
-                };
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("area", $"{area}") },
+                { new KeyValuePair<string, string>("mode", $"{(byte)mode}") },
+            };
 
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondPost");
-                request.Content = new FormUrlEncodedContent(formData);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondPost");
+            request.Content = new FormUrlEncodedContent(formData);
 
-                HttpResponseMessage response = await _client.SendAsync(request);
-                response.EnsureSuccessStatusCode();
-
-                string result = await response.Content.ReadAsStringAsync();
-
-                responseBody = await response.Content.ReadAsAsync<ActionResult>();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "An error occured in SetAlarmMode");
-            }
+            ActionResult responseBody = await SendRequest<ActionResult>(request);
 
             return responseBody;
         }
 
         public async Task<ActionResult> SetSwitch(string uniqueId, bool onOff)
         {
-            ActionResult responseBody = null;
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("switch", $"{(onOff ? 1 : 0)}") },
+                { new KeyValuePair<string, string>("pd", string.Empty) },
+                { new KeyValuePair<string, string>("id", $"{uniqueId}") },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceSwitchPSSPost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            ActionResult responseBody = await SendRequest<ActionResult>(request);
+
+            return responseBody;
+        }
+
+        private async Task<T> SendRequest<T>(HttpRequestMessage request)
+        {
             try
             {
-                IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
-                    { new KeyValuePair<string, string>("switch", $"{(onOff ? 1 : 0)}") },
-                    { new KeyValuePair<string, string>("pd", string.Empty) },
-                    { new KeyValuePair<string, string>("id", $"{uniqueId}") },
-                };
-
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceSwitchPSSPost");
-                request.Content = new FormUrlEncodedContent(formData);
-
                 HttpResponseMessage response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
-
-                string result = await response.Content.ReadAsStringAsync();
-
-                responseBody = await response.Content.ReadAsAsync<ActionResult>();
+                T responseBody = await response.Content.ReadAsAsync<T>();
+                _logger.LogInformation("This was the Answer for requesting {uri}:\n{body}", request.RequestUri, responseBody);
+                return responseBody;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occured in SetSwitch");
+                _logger.LogError(ex, "Call to Lupusec has an error! Request was:\n{request}", request);
             }
-
-            return responseBody;
+            return default(T);
         }
     }
 }
