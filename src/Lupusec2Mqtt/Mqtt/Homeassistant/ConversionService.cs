@@ -19,7 +19,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             _logger = logger;
         }
 
-        public IEnumerable<IDevice> GetDevices(Sensor sensor)
+        public IList<IDevice> GetDevices(Sensor sensor)
         {
             List<IDevice> list = new List<IDevice>();
 
@@ -67,7 +67,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             return (Area1: new AlarmControlPanel(_configuration, panelCondition, 1), Area2: new AlarmControlPanel(_configuration, panelCondition, 2));
         }
 
-        public IEnumerable<IStateProvider> GetStateProviders(Sensor sensor, IEnumerable<Logrow> logRows)
+        public IList<IStateProvider> GetStateProviders(Sensor sensor, IList<Logrow> logRows)
         {
             List<IStateProvider> list = new List<IStateProvider>();
 

@@ -25,6 +25,9 @@ namespace Lupusec2Mqtt.Mqtt
 
         public void Publish(string topic, string payload)
         {
+            if (payload==null){
+                throw new ArgumentNullException("payload");
+            }
             _client.Publish(topic, Encoding.UTF8.GetBytes(payload), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
         }
 
