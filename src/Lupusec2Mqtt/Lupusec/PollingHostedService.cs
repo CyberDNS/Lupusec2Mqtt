@@ -39,7 +39,7 @@ namespace Lupusec2Mqtt.Lupusec
             _lupusecService = lupusecService;
             _configuration = configuration;
 
-            _conversionService = new ConversionService(_configuration);
+            _conversionService = new ConversionService(_configuration, logger);
             _mqttService = new MqttService(_configuration);
 
             _cancellationTokenSource = new CancellationTokenSource();
