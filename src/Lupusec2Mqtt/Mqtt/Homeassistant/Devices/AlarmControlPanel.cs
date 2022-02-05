@@ -52,8 +52,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 case AlarmMode.HomeArm1:
                     return "armed_night";
                 case AlarmMode.HomeArm2:
-                case AlarmMode.HomeArm3:
                     return "armed_home";
+                case AlarmMode.HomeArm3:
+                    return "armed_vacation";
                 default:
                     return null;
             }

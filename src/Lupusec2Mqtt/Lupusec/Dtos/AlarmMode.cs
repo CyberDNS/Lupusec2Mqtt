@@ -15,7 +15,7 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
         DISARM = 0,
         ARM_AWAY = 1,
         ARM_NIGHT = 2,
-        ARM_HOME = 3
-
+        ARM_HOME = 3,
+        ARM_VACATION = 4
     }
 }

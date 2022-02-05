@@ -89,7 +89,7 @@ namespace Lupusec2Mqtt.Lupusec
                 HttpResponseMessage response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 T responseBody = await response.Content.ReadAsAsync<T>();
-                _logger.LogInformation("This was the Answer for requesting {uri}:\n{body}", request.RequestUri, responseBody);
+                _logger.LogDebug("This was the Answer for requesting {uri}:\n{body}", request.RequestUri, responseBody);
                 return responseBody;
             }
             catch (Exception ex)
