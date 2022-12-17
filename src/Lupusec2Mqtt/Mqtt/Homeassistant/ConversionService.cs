@@ -47,7 +47,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             return list;
         }
 
-        public (ICommandable Device, SwitchPowerSensor SwitchPowerSensor)? GetDevice(PowerSwitch powerSwitch)
+        public (IDevice Device, SwitchPowerSensor SwitchPowerSensor)? GetDevice(PowerSwitch powerSwitch)
         {
             switch (powerSwitch.Type)
             {

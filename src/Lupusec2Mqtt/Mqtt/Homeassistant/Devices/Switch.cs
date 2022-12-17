@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Switch : Device, IDevice, IStateProvider, ICommandable
+    public class Switch : Device, IDevice, IStateProvider
     {
         protected readonly PowerSwitch _powerSwitch;
 
@@ -26,7 +26,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         private string GetState()
         {
-            if (_powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}")) { return "ON"; } 
+            if (_powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}")) { return "ON"; }
             else { return "OFF"; }
         }
 
@@ -42,6 +42,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
             UniqueId = _powerSwitch.Id;
             Name = GetValue(nameof(Name), _powerSwitch.Name);
+
+            Commands = new Command[]
+            {
+                new Command(CommandTopic, ExecuteCommand)
+            };
         }
     }
 }

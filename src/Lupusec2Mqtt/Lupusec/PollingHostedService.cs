@@ -75,6 +75,12 @@ namespace Lupusec2Mqtt.Lupusec
             IEnumerable<IDevice> configs = _conversionService.GetDevices(sensor);
             foreach (var config in configs)
             {
+
+                foreach (var commandConfig in config.Commands)
+                {
+                    _mqttService.Register(commandConfig.CommandTopic, command => ExecuteCommand(command, commandConfig.CommandTopic, config));
+                }
+
                 TryCall(config, PublishDeviceToMqtt);
             }
         }
@@ -95,22 +101,22 @@ namespace Lupusec2Mqtt.Lupusec
 
             if (config.HasValue)
             {
-                _mqttService.Register(config.Value.Device.CommandTopic, command => ExecuteCommand(command, config.Value.Device));
+                _mqttService.Register(config.Value.Device.Commands.Single().CommandTopic, command => ExecuteCommand(command, config.Value.Device.Commands.Single().CommandTopic, config.Value.Device));
                 PublishDeviceToMqtt(config.Value.Device);
                 PublishDeviceToMqtt(config.Value.SwitchPowerSensor);
             }
         }
 
-        private void ExecuteCommand(string command, ICommandable device)
+        private void ExecuteCommand(string command, string commandTopic, IDevice device)
         {
             try
             {
+                device.Commands.Where(c => c.CommandTopic.Equals(commandTopic)).Single().CommandAction.Invoke(command, _lupusecService);
                 _logger.LogInformation("Command {Command} sent to device {UniqueId} {Name}", command, device.UniqueId, device.Name);
-                device.ExecuteCommand(command, _lupusecService);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "An error occured while setting switch {UniqueId} {Name} to {Status}", device.UniqueId, device.Name, command);
+                _logger.LogError(ex, "An error occured while sending command {Command} to device {UniqueId} {Name}", command, device.UniqueId, device.Name);
             }
         }
 

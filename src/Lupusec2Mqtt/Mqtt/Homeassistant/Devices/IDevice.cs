@@ -1,3 +1,6 @@
+using System.Collections;
+using System.Collections.Generic;
+
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
     public interface IDevice
@@ -7,6 +10,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         string ConfigTopic { get; }
 
+        IEnumerable<Command> Commands { get; }
 
     }
 }

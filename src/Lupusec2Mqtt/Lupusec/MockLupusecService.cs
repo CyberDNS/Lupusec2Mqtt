@@ -56,6 +56,11 @@ namespace Lupusec2Mqtt.Lupusec
             return new ActionResult();
         }
 
+        public async Task<ActionResult> SetCoverPosition(byte area, byte zone, string command)
+        {
+            return new ActionResult();
+        }
+
         private string GetMockFileContent(string type)
         {
             string path = Path.Combine(_configuration.GetValue<string>("Lupusec:MockFilesPath"), $"{type}.json");
@@ -66,5 +71,7 @@ namespace Lupusec2Mqtt.Lupusec
 
             return null;
         }
+
+
     }
 }

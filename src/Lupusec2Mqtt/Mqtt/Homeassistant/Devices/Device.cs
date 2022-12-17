@@ -1,6 +1,8 @@
 using Lupusec2Mqtt.Lupusec.Dtos;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
@@ -20,10 +22,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         [JsonIgnore]
         public virtual string ConfigTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/config");
 
+        [JsonIgnore]
+        public IEnumerable<Command> Commands { get; protected set; } = Array.Empty<Command>();
+
         public Device(IConfiguration configuration)
         {
             _configuration = configuration;
-
         }
 
         protected string GetValue(string property, string defaultValue)
