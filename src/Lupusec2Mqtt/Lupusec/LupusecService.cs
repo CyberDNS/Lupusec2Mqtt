@@ -82,6 +82,22 @@ namespace Lupusec2Mqtt.Lupusec
             return responseBody;
         }
 
+        public async Task<ActionResult> SetCoverPosition(byte area, byte zone, string command)
+        {
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("a", area.ToString()) },
+                { new KeyValuePair<string, string>("z", zone.ToString()) },
+                { new KeyValuePair<string, string>("shutter", command) },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/haExecutePost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            ActionResult responseBody = await SendRequest<ActionResult>(request);
+
+            return responseBody;
+        }
+
         private async Task<T> SendRequest<T>(HttpRequestMessage request)
         {
             try
