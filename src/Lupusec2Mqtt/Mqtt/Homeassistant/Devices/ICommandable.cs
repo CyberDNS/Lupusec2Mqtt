@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public interface ISettable : IDevice, IStateProvider
+    public interface ICommandable : IDevice, IStateProvider
     {
         string CommandTopic { get; }
 
-        void SetState(string state, ILupusecService lupusecService);
+        void ExecuteCommand(string command, ILupusecService lupusecService);
     }
 }

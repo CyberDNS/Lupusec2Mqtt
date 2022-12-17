@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Switch : Device, IDevice, IStateProvider, ISettable
+    public class Switch : Device, IDevice, IStateProvider, ICommandable
     {
         protected readonly PowerSwitch _powerSwitch;
 
@@ -30,7 +30,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             else { return "OFF"; }
         }
 
-        public void SetState(string state, ILupusecService lupusecService)
+        public void ExecuteCommand(string state, ILupusecService lupusecService)
         {
             lupusecService.SetSwitch(UniqueId, state.Equals("on", StringComparison.OrdinalIgnoreCase));
         }

@@ -9,7 +9,7 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
     public class RecordList
     {
         [JsonPropertyName("logrows")]
-        public List<Logrow> Logrows { get; set; }
+        public List<Logrow> Logrows { get; set; } = new List<Logrow>();
     }
 
     public class Logrow

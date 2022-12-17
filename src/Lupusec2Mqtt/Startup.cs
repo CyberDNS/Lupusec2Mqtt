@@ -51,16 +51,23 @@ namespace Lupusec2Mqtt
                 (ex, timespan) => LupusecTokenHandler.ResetToken());
             });
 
-            services.AddHttpClient<ILupusecService, LupusecService>(client =>
+            if (Configuration.GetValue<bool>("Lupusec:MockMode"))
             {
-                client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
-            })
-            .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
-            .AddHttpMessageHandler<LupusecTokenHandler>();
+                services.AddSingleton<ILupusecService, MockLupusecService>();
+            }
+            else 
+            { 
+                services.AddHttpClient<ILupusecService, LupusecService>(client =>
+                {
+                    client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
+                })
+                .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
+                .AddHttpMessageHandler<LupusecTokenHandler>();
+            }
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

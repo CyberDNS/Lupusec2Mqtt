@@ -54,6 +54,9 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
         [JsonProperty("status")]
         public string Status;
 
+        [JsonProperty("level")]
+        public int Level;
+
         [JsonProperty("sid")]
         public string SensorId;
 

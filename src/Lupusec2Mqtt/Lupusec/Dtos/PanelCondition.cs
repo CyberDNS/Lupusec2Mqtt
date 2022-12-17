@@ -8,8 +8,8 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
 {
     public class PanelCondition
     {
-        public Updates updates { get; set; }
-        public Forms forms { get; set; }
+        public Updates updates { get; set; } = new Updates();
+        public Forms forms { get; set; } = new Forms();
     }
 
     public class Updates
@@ -35,13 +35,13 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
 
     public class Pcondform
     {
-        public AlarmMode mode { get; set; }
+        public AlarmMode mode { get; set; } = AlarmMode.Disarmed;
         public string f_arm { get; set; }
     }
 
     public class Forms
     {
-        public Pcondform pcondform1 { get; set; }
-        public Pcondform pcondform2 { get; set; }
+        public Pcondform pcondform1 { get; set; } = new Pcondform(); 
+        public Pcondform pcondform2 { get; set; } = new Pcondform();
     }
 }
