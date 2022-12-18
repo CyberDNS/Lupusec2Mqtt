@@ -14,18 +14,15 @@ namespace Lupusec2Mqtt.Mqtt
         private IDictionary<string, Action<string>> _registrations = new Dictionary<string, Action<string>>();
         public MqttService(IConfiguration configuration)
         {
-
             _client = new MqttClient(configuration["Mqtt:Server"], configuration.GetValue("Mqtt:Port", 1883), false, null, null, MqttSslProtocols.None);
 
             _client.MqttMsgPublishReceived += MqttMsgPublishReceived;
             _client.Connect("Lupusec2Mqtt", configuration["Mqtt:Login"], configuration["Mqtt:Password"]);
-
-            _client.Subscribe(new string[] { "/home/temperature" }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
         }
 
         public void Publish(string topic, string payload)
         {
-            if (payload==null){
+            if (payload == null){
                 throw new ArgumentNullException("payload");
             }
             _client.Publish(topic, Encoding.UTF8.GetBytes(payload), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);

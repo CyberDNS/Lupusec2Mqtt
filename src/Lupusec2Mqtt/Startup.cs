@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Serilog.Core;
 using Serilog;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
 
 namespace Lupusec2Mqtt
 {
@@ -29,7 +30,14 @@ namespace Lupusec2Mqtt
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHostedService<PollingHostedService>();
+            services.AddHostedService<MainLoop>();
+
+            services.Scan(scan =>
+                scan.FromApplicationDependencies()
+                    .AddClasses(classes => classes.AssignableTo<IDeviceFactory>())
+                    .AsImplementedInterfaces()
+                    .WithTransientLifetime()
+            );
 
             services.AddHttpClient<LupusecTokenHandler>(client =>
             {
@@ -68,6 +76,8 @@ namespace Lupusec2Mqtt
                 .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
                 .AddHttpMessageHandler<LupusecTokenHandler>();
             }
+
+            services.AddSingleton<LupusecCache>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

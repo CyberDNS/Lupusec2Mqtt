@@ -16,6 +16,14 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly ILogger<LupusecService> _logger;
         private readonly IConfiguration _configuration;
 
+        public SensorList SensorList { get; private set; }
+
+        public RecordList RecordList { get; private set; }
+
+        public PowerSwitchList PowerSwitchList { get; private set; }
+
+        public PanelCondition PanelCondition { get; private set; }
+
         public MockLupusecService(ILogger<LupusecService> logger, IConfiguration configuration)
         {
             _logger = logger;
@@ -46,6 +54,14 @@ namespace Lupusec2Mqtt.Lupusec
             return Task.FromResult(content is not null ? JsonConvert.DeserializeObject<PanelCondition>(content) : new PanelCondition());
         }
 
+        public async Task PollAllAsync()
+        {
+            SensorList = await GetSensorsAsync();
+            RecordList = await GetRecordsAsync();
+            PowerSwitchList = await GetPowerSwitches();
+            PanelCondition = await GetPanelConditionAsync();
+        }
+
         public async Task<ActionResult> SetAlarmMode(int area, AlarmMode mode)
         {
             return new ActionResult();
@@ -71,7 +87,5 @@ namespace Lupusec2Mqtt.Lupusec
 
             return null;
         }
-
-
     }
 }
