@@ -97,6 +97,7 @@ namespace Lupusec2Mqtt.Lupusec
                 _mqttService.Register(config.Value.Device.CommandTopic, state => SetState(state, config.Value.Device));
                 PublishDeviceToMqtt(config.Value.Device);
                 PublishDeviceToMqtt(config.Value.SwitchPowerSensor);
+                PublishDeviceToMqtt(config.Value.SwitchEnergySensor);
             }
         }
 
@@ -176,6 +177,7 @@ namespace Lupusec2Mqtt.Lupusec
             {
                 PublishStateToMqtt(device.Value.Device);
                 PublishStateToMqtt(device.Value.SwitchPowerSensor);
+                PublishStateToMqtt(device.Value.SwitchEnergySensor);
             }
         }
 

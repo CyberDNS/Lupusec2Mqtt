@@ -25,6 +25,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         [JsonProperty("unit_of_measurement")]
         public string UnitOfMeasurement => "%";
 
+        [JsonProperty("state_class")]
+        public string StateClass => "measurement";
+
         protected override string _component => "sensor";
 
         private string GetState()

@@ -44,18 +44,18 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             return list;
         }
 
-        public (ISettable Device, SwitchPowerSensor SwitchPowerSensor)? GetDevice(PowerSwitch powerSwitch)
+        public (ISettable Device, SwitchPowerSensor SwitchPowerSensor, SwitchEnergySensor SwitchEnergySensor)? GetDevice(PowerSwitch powerSwitch)
         {
             switch (powerSwitch.Type)
             {
                 case 24: // Wall switch
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null, SwitchEnergySensor: null);
                 case 48: // Power meter switch
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch), SwitchEnergySensor: new SwitchEnergySensor(_configuration, powerSwitch));
                 case 74: // Light switch
-                    return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null, SwitchEnergySensor: null);
                 case 57: // Smart Lock
-                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null, SwitchEnergySensor: null);
                 default:
                     LogIgnoredDevice(powerSwitch);
                     return null;
@@ -92,19 +92,20 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant
             return list;
         }
 
-        public (IStateProvider Device, IStateProvider SwitchPowerSensor)? GetStateProvider(PowerSwitch powerSwitch)
+        public (IStateProvider Device, IStateProvider SwitchPowerSensor, IStateProvider SwitchEnergySensor)? GetStateProvider(PowerSwitch powerSwitch)
         {
             switch (powerSwitch.Type)
             {
                 case 24: // Wall switch
-                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Switch(_configuration, powerSwitch), SwitchPowerSensor: null, SwitchEnergySensor: null);
                 case 48: // Power meter switch
                     return (Device: new Switch(_configuration, powerSwitch),
-                            SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch));
+                            SwitchPowerSensor: new SwitchPowerSensor(_configuration, powerSwitch), 
+                            SwitchEnergySensor: new SwitchEnergySensor(_configuration, powerSwitch));
                 case 74: // Light switch
-                    return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null);
-                case 57: // Smart Lock
-                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null);
+                    return (Device: new Light(_configuration, powerSwitch), SwitchPowerSensor: null, SwitchEnergySensor: null);
+                case 57: // Smart Lock                                                            
+                    return (Device: new Lock(_configuration, powerSwitch), SwitchPowerSensor: null, SwitchEnergySensor: null);
                 default:
                     LogIgnoredDevice(powerSwitch);
                     return null;
