@@ -28,7 +28,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            var matchingEvent = lupusecService.RecordList.Logrows.Where(r => r.Event.StartsWith("{ALARM_HISTORY_20}"))
+            var matchingEvent = lupusecService.RecordList.Logrows.Where(r => r.Event.StartsWith("{ALARM_HISTORY_20}") && r.Sid.Equals(GetStaticValue("unique_id")))
             .OrderByDescending(r => r.UtcDateTime)
             .FirstOrDefault(r => (DateTime.UtcNow - r.UtcDateTime) <= TimeSpan.FromSeconds(_configuration.GetValue<int>("MotionSensor:DetectionDuration")));
 
