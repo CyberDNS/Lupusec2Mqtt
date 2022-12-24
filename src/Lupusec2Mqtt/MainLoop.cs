@@ -21,9 +21,8 @@ namespace Lupusec2Mqtt
         private readonly ILogger _logger;
         private readonly ILupusecService _lupusecService;
         private readonly IEnumerable<IDeviceFactory> _factories;
-        private readonly IConfiguration _configuration;
 
-        private readonly MqttService _mqttService;
+        private readonly IMqttService _mqttService;
         private Timer _timer;
 
         private TimeSpan _pollFrequency = TimeSpan.FromSeconds(2);
@@ -40,22 +39,23 @@ namespace Lupusec2Mqtt
             _logger = logger;
             _lupusecService = lupusecService;
             _factories = factories;
-            _configuration = configuration;
-            _mqttService = new MqttService(_configuration);
+            _mqttService = new MqttService(configuration);
 
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
         {
+            await _mqttService.StartAsync();
+
             List<Device> devices = await GetDevices();
-            ConfigureDevices(devices);
+            await ConfigureDevicesAsync(devices);
 
             _logger.LogInformation("Starting to poll every {PollDelay} seconds", _pollFrequency.TotalSeconds);
             _timer = new Timer(DoWork, null, TimeSpan.Zero, _pollFrequency);
         }
 
-        private void ConfigureDevices(List<Device> devices)
+        private async Task ConfigureDevicesAsync(List<Device> devices)
         {
             foreach (var device in devices)
             {
@@ -81,7 +81,7 @@ namespace Lupusec2Mqtt
                     _logger.LogInformation("Command {Topic} registered for device {Device}", command.CommandTopic, device);
                 }
 
-                _mqttService.Publish(device.ConfigTopic, JsonSerializer.Serialize(dto));
+                await _mqttService.PublishAsync(device.ConfigTopic, JsonSerializer.Serialize(dto));
 
                 _logger.LogInformation("Device configured: {Device}", device);
             }
@@ -113,7 +113,7 @@ namespace Lupusec2Mqtt
                         {
                             var oldValue = _values[query.ValueTopic];
                             _values[query.ValueTopic] = value;
-                            _mqttService.Publish(query.ValueTopic, value);
+                            await _mqttService.PublishAsync(query.ValueTopic, value);
 
                             _logger.LogInformation("Value for topic {Topic} on device {Device} changed from {oldValue} to {newValue}", query.ValueTopic, device, oldValue, value);
                         }
@@ -139,13 +139,11 @@ namespace Lupusec2Mqtt
             return devices;
         }
 
-        public Task StopAsync(CancellationToken stoppingToken)
+        public async Task StopAsync(CancellationToken stoppingToken)
         {
             _timer?.Change(Timeout.Infinite, 0);
 
-            _mqttService.Disconnect();
-
-            return Task.CompletedTask;
+            await _mqttService.StopAsync();
         }
 
         public void Dispose()

@@ -1,52 +1,71 @@
+﻿using Microsoft.Extensions.Configuration;
+using MQTTnet;
+using MQTTnet.Client;
+using MQTTnet.Extensions.ManagedClient;
 using System;
 using System.Collections.Generic;
 using System.Text;
-using Microsoft.Extensions.Configuration;
-using uPLibrary.Networking.M2Mqtt;
-using uPLibrary.Networking.M2Mqtt.Messages;
+using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt
 {
-    public class MqttService
+    public class MqttService : IMqttService
     {
-        private readonly MqttClient _client;
+        private IManagedMqttClient _managedMqttClient;
+        private readonly IConfiguration _configuration;
 
-        private IDictionary<string, Action<string>> _registrations = new Dictionary<string, Action<string>>();
+        private Dictionary<string, Func<string, Task>> _registrations = new();
+
         public MqttService(IConfiguration configuration)
         {
-            _client = new MqttClient(configuration["Mqtt:Server"], configuration.GetValue("Mqtt:Port", 1883), false, null, null, MqttSslProtocols.None);
-
-            _client.MqttMsgPublishReceived += MqttMsgPublishReceived;
-            _client.Connect("Lupusec2Mqtt", configuration["Mqtt:Login"], configuration["Mqtt:Password"]);
+            _configuration = configuration;
         }
 
-        public void Publish(string topic, string payload)
+        public async Task StartAsync()
         {
-            if (payload == null){
-                throw new ArgumentNullException("payload");
-            }
-            _client.Publish(topic, Encoding.UTF8.GetBytes(payload), MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE, true);
+            var mqttFactory = new MqttFactory();
+
+            _managedMqttClient = mqttFactory.CreateManagedMqttClient();
+
+            var mqttClientOptions = new MqttClientOptionsBuilder()
+                .WithTcpServer(_configuration["Mqtt:Server"], _configuration.GetValue("Mqtt:Port", 1883))
+                .WithClientId("Lupusec2Mqtt")
+                .WithCredentials(_configuration["Mqtt:Login"], _configuration["Mqtt:Password"])
+                .Build();
+
+            var managedMqttClientOptions = new ManagedMqttClientOptionsBuilder()
+                .WithClientOptions(mqttClientOptions)
+                .Build();
+
+            _managedMqttClient.ApplicationMessageReceivedAsync += ApplicationMessageReceivedAsync;
+
+            await _managedMqttClient.StartAsync(managedMqttClientOptions);
         }
 
-        public void Register(string topic, Action<string> callback)
+        private async Task ApplicationMessageReceivedAsync(MqttApplicationMessageReceivedEventArgs arg)
+        {
+            if (_registrations.ContainsKey(arg.ApplicationMessage.Topic))
+            {
+                await _registrations[arg.ApplicationMessage.Topic].Invoke(arg.ApplicationMessage.ConvertPayloadToString());
+            }
+        }
+
+        public void Register(string topic, Func<string, Task> callback)
         {
             if (!_registrations.ContainsKey(topic)) { _registrations.Add(topic, null); }
             _registrations[topic] = callback;
 
-            _client.Subscribe(new string[] { topic }, new byte[] { MqttMsgBase.QOS_LEVEL_AT_MOST_ONCE });
+            _managedMqttClient.SubscribeAsync(topic);
         }
 
-        private void MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
+        public async Task PublishAsync(string topic, string payload)
         {
-            if (_registrations.ContainsKey(e.Topic))
-            {
-                _registrations[e.Topic].Invoke(Encoding.UTF8.GetString(e.Message));
-            }
+            await _managedMqttClient.EnqueueAsync(topic, payload);
         }
 
-        public void Disconnect()
+        public async Task StopAsync()
         {
-            _client.Disconnect();
+            await _managedMqttClient.StopAsync();
         }
     }
 }
