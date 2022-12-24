@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
     public class SwitchPowerSensor : Device
     {

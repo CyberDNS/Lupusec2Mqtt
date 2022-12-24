@@ -4,7 +4,7 @@ using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
     public class AlarmDetectionSensorFactory : DeviceFactory
     {

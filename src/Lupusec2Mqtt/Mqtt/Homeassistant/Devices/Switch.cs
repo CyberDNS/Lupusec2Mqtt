@@ -2,18 +2,18 @@
 using Lupusec2Mqtt.Lupusec;
 using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
 using System.Threading.Tasks;
+using System;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Xml;
-using System;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Light : Device
+    public class Switch : Device
     {
-        public override string Component => "light";
+        public override string Component => "switch";
 
-        public Light(PowerSwitch powerSwitch)
+        public Switch(PowerSwitch powerSwitch)
         {
             DeclareStaticValue("name", powerSwitch.Name);
             DeclareStaticValue("unique_id", powerSwitch.Id);
@@ -26,7 +26,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue("unique_id"));
-            var result = powerSwitch.Status.Contains("{WEB_MSG_DIMMER_ON}") ? "ON" : "OFF";
+            var result = powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}") ? "ON" : "OFF";
 
             return Task.FromResult(result);
         }

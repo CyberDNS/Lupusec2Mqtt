@@ -8,7 +8,7 @@ using System;
 using System.Threading.Tasks;
 using System.Xml;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
     public class AlarmControlPanel : Device
     {

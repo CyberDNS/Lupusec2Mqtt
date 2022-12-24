@@ -2,18 +2,18 @@
 using Lupusec2Mqtt.Lupusec;
 using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
 using System.Threading.Tasks;
-using System;
 using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Xml;
+using System;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Lock : Device
+    public class Light : Device
     {
-        public override string Component => "lock";
+        public override string Component => "light";
 
-        public Lock(PowerSwitch powerSwitch)
+        public Light(PowerSwitch powerSwitch)
         {
             DeclareStaticValue("name", powerSwitch.Name);
             DeclareStaticValue("unique_id", powerSwitch.Id);
@@ -26,14 +26,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue("unique_id"));
-            var result = powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}") ? "LOCKED" : "UNLOCKED";
+            var result = powerSwitch.Status.Contains("{WEB_MSG_DIMMER_ON}") ? "ON" : "OFF";
 
             return Task.FromResult(result);
         }
 
         public async Task ExecuteCommand(ILogger logger, ILupusecService lupusecService, string command)
         {
-            await lupusecService.SetSwitch(GetStaticValue("unique_id"), command.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
+            await lupusecService.SetSwitch(GetStaticValue("unique_id"), command.Equals("on", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

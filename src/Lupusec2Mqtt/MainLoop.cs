@@ -51,7 +51,7 @@ namespace Lupusec2Mqtt
             List<Device> devices = await GetDevices();
             ConfigureDevices(devices);
 
-            _logger.LogInformation("Startîng to poll every {PollDelay} seconds", _pollFrequency.TotalSeconds);
+            _logger.LogInformation("Starting to poll every {PollDelay} seconds", _pollFrequency.TotalSeconds);
             _timer = new Timer(DoWork, null, TimeSpan.Zero, _pollFrequency);
         }
 
@@ -65,7 +65,17 @@ namespace Lupusec2Mqtt
                 foreach (Command command in device.Commands)
                 {
                     dto.TryAdd(command.Name, command.CommandTopic);
-                    _mqttService.Register(command.CommandTopic, input => command.ExecuteCommand.Invoke(_logger, _lupusecService, input));
+                    _mqttService.Register(command.CommandTopic, async input =>
+                    {
+                        try
+                        {
+                            await command.ExecuteCommand.Invoke(_logger, _lupusecService, input);
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogError(ex, "Error during command execution!");
+                        }
+                    });
 
                     _logger.LogInformation("Command topic {Topic} registred for device {Device}", command.CommandTopic, device);
                 }
@@ -109,9 +119,9 @@ namespace Lupusec2Mqtt
                     }
                 }
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                _logger.LogError(ex, "A fatal error occured!");
+                _logger.LogError(ex, "Error during poll execution!");
             }
         }
 

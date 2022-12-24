@@ -5,19 +5,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class OpenCloseContactFactory : DeviceFactory
+    public class MotionDetectorFactory : DeviceFactory
     {
-        public OpenCloseContactFactory(IConfiguration configuration, ILupusecService lupusecService)
+        public MotionDetectorFactory(IConfiguration configuration, ILupusecService lupusecService)
             : base(configuration, lupusecService)
         { }
 
         public override Task<IEnumerable<Device>> GenerateDevicesAsync()
         {
             var result = _lupusecService.SensorList.Sensors
-                .Where(s => s.TypeId == 4 || s.TypeId == 33)
-                .Select(s => new OpenCloseContact(s))
+                .Where(s => s.TypeId == 9)
+                .Select(s => new MotionDetector(_configuration, s))
                 .ToArray();
 
             return Task.FromResult<IEnumerable<Device>>(result);

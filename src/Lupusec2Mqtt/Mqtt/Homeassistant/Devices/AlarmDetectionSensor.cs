@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using System.Linq;
 using System;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
     public class AlarmDetectionSensor : Device
     {

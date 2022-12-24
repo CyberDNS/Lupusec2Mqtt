@@ -5,19 +5,19 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Lupusec2Mqtt.Mqtt.Homeassistant.DevicesNew
+namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class HumiditySensorFactory : DeviceFactory
+    public class OpenCloseContactFactory : DeviceFactory
     {
-        public HumiditySensorFactory(IConfiguration configuration, ILupusecService lupusecService) 
+        public OpenCloseContactFactory(IConfiguration configuration, ILupusecService lupusecService)
             : base(configuration, lupusecService)
         { }
 
         public override Task<IEnumerable<Device>> GenerateDevicesAsync()
         {
             var result = _lupusecService.SensorList.Sensors
-                .Where(s => s.TypeId == 54)
-                .Select(s => new HumiditySensor(s))
+                .Where(s => s.TypeId == 4 || s.TypeId == 33)
+                .Select(s => new OpenCloseContact(s))
                 .ToArray();
 
             return Task.FromResult<IEnumerable<Device>>(result);
