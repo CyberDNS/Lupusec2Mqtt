@@ -24,7 +24,7 @@ namespace Lupusec2Mqtt
                            .Enrich.FromLogContext()
                            .WriteTo.Debug()
                            .WriteTo.Console(
-                               outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj} {Properties:j}{NewLine}{Exception}")
+                               outputTemplate: "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
                            .CreateLogger();
 
             try
