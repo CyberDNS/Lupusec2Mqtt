@@ -15,12 +15,22 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly ILogger<LupusecService> _logger;
         private readonly HttpClient _client;
         private readonly IConfiguration _configuration;
+        private readonly LupusecCache _cache;
 
-        public LupusecService(ILogger<LupusecService> logger, HttpClient client, IConfiguration configuration)
+        public SensorList SensorList => _cache.SensorList;
+
+        public RecordList RecordList => _cache.RecordList;
+
+        public PowerSwitchList PowerSwitchList => _cache.PowerSwitchList;
+
+        public PanelCondition PanelCondition => _cache.PanelCondition;
+
+        public LupusecService(ILogger<LupusecService> logger, HttpClient client, IConfiguration configuration, LupusecCache cache)
         {
             _logger = logger;
             _client = client;
             _configuration = configuration;
+            _cache=cache;
         }
 
         public async Task<SensorList> GetSensorsAsync()
@@ -50,6 +60,15 @@ namespace Lupusec2Mqtt.Lupusec
             PanelCondition responseBody = await SendRequest<PanelCondition>(request);
             return responseBody;
         }
+
+        public async Task PollAllAsync()
+        {
+            _cache.UpdateSensorList(await GetSensorsAsync());
+            _cache.UpdateRecordList(await GetRecordsAsync());
+            _cache.UpdatePowerSwitchList(await GetPowerSwitches());
+            _cache.UpdatePanelCondition(await GetPanelConditionAsync());
+        }
+
 
         public async Task<ActionResult> SetAlarmMode(int area, AlarmMode mode)
         {
@@ -82,6 +101,22 @@ namespace Lupusec2Mqtt.Lupusec
             return responseBody;
         }
 
+        public async Task<ActionResult> SetCoverPosition(byte area, byte zone, string command)
+        {
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("a", area.ToString()) },
+                { new KeyValuePair<string, string>("z", zone.ToString()) },
+                { new KeyValuePair<string, string>("shutter", command) },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/haExecutePost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            ActionResult responseBody = await SendRequest<ActionResult>(request);
+
+            return responseBody;
+        }
+
         private async Task<T> SendRequest<T>(HttpRequestMessage request)
         {
             try
@@ -98,5 +133,7 @@ namespace Lupusec2Mqtt.Lupusec
             }
             return default(T);
         }
+
+
     }
 }

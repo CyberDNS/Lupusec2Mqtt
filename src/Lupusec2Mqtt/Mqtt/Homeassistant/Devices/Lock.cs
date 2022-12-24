@@ -1,53 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Lupusec2Mqtt.Lupusec.Dtos;
 using Lupusec2Mqtt.Lupusec;
-using Lupusec2Mqtt.Lupusec.Dtos;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
+using System.Threading.Tasks;
+using System;
+using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Xml;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Lock : Device, IDevice, IStateProvider, ISettable
+    public class Lock : Device
     {
-        protected readonly PowerSwitch _powerSwitch;
+        public override string Component => "lock";
 
-        [JsonProperty("state_topic")]
-        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
-
-        [JsonProperty("command_topic")]
-        public string CommandTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/set");
-
-        protected override string _component => "lock";
-
-        [JsonIgnore]
-        public string State => GetState();
-
-        public Lock(IConfiguration configuration, PowerSwitch powerSwitch)
-            : base(configuration)
+        public Lock(PowerSwitch powerSwitch)
         {
-            _powerSwitch = powerSwitch;
+            DeclareStaticValue("name", powerSwitch.Name);
+            DeclareStaticValue("unique_id", powerSwitch.Id);
 
-            UniqueId = _powerSwitch.Id;
-            Name = GetValue(nameof(Name), _powerSwitch.Name);
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
+
+            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/set", ExecuteCommand);
         }
 
-        private string GetState()
+        public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            if (_powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}"))
-            {
-                return "LOCKED";
-            }
-            else
-            {
-                return "UNLOCKED";
-            }
+            var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue("unique_id"));
+            var result = powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}") ? "LOCKED" : "UNLOCKED";
+
+            return Task.FromResult(result);
         }
 
-        public void SetState(string state, ILupusecService lupusecService)
+        public async Task ExecuteCommand(ILogger logger, ILupusecService lupusecService, string command)
         {
-            lupusecService.SetSwitch(UniqueId, state.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
+            await lupusecService.SetSwitch(GetStaticValue("unique_id"), command.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

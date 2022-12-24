@@ -22,3 +22,4 @@ The docker image isn't anymore maintained, you can create your own docker image 
 - Lock (config, state, set)
 - Temperature/Humidity sensor (config, state)
 - Smoke detector (config)
+- Cover (config, state)

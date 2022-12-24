@@ -1,45 +1,38 @@
-﻿using Lupusec2Mqtt.Lupusec.Dtos;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
+﻿using Lupusec2Mqtt.Lupusec;
+using Lupusec2Mqtt.Lupusec.Dtos;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
+using Microsoft.Extensions.Logging;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class SwitchPowerSensor : Device, IDevice, IStateProvider
+    public class SwitchPowerSensor : Device
     {
-        protected readonly PowerSwitch _powerSwitch;
+        private readonly string _id;
 
-        [JsonProperty("state_topic")]
-        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
+        public override string Component => "sensor";
 
-        [JsonProperty("unit_of_measurement")]
-        public string UnitOfMeasurement => "W";
-
-        [JsonIgnore]
-        public string State => GetState();
-
-        protected override string _component => "sensor";
-
-
-        private string GetState()
+        public SwitchPowerSensor(PowerSwitch powerSwitch)
         {
-            var match = Regex.Match(_powerSwitch.Status, @"{WEB_MSG_PSM_POWER}\s*(?'power'\d+\.?\d*)");
+            _id = powerSwitch.Id;
 
-            if (match.Success) { return match.Groups["power"].Value; }
-            return "0";
+            DeclareStaticValue("name", $"{powerSwitch.Name} - Power");
+            DeclareStaticValue("unique_id", $"{powerSwitch.Id}_power");
+            DeclareStaticValue("unit_of_measurement", "W");
+
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
         }
-   
-        public SwitchPowerSensor(IConfiguration configuration, PowerSwitch powerSwitch)
-       : base(configuration)
-        {
-            _powerSwitch = powerSwitch;
 
-            UniqueId = $"{_powerSwitch.Id}_power";
-            Name = GetValue(nameof(Name), $"{_powerSwitch.Name} - Power");
+        public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
+        {
+            var sensor = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == _id);
+            var match = Regex.Match(sensor.Status, @"{WEB_MSG_PSM_POWER}\s*(?'power'\d+\.?\d*)");
+
+            if (match.Success) { return Task.FromResult(match.Groups["power"].Value); }
+            return Task.FromResult("0");
         }
     }
 }

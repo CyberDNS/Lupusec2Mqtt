@@ -1,54 +1,39 @@
-using System;
-using System.Collections.Generic;
+﻿using Lupusec2Mqtt.Lupusec.Dtos;
+using Lupusec2Mqtt.Lupusec;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Lupusec2Mqtt.Lupusec.Dtos;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+using System.Security.Cryptography;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class HumiditySensor: Device, IDevice, IStateProvider
+    public class HumiditySensor : Device
     {
-        protected readonly Sensor _sensor;
-        protected readonly IList<Logrow> _logRows;
+        private readonly string _id;
 
-        [JsonProperty("device_class")]
-        public string DeviceClass { get; set; }
+        public override string Component => "sensor";
 
-        [JsonProperty("state_topic")]
-        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
-
-        [JsonIgnore]
-        public string State => GetState();
-
-        [JsonProperty("unit_of_measurement")]
-        public string UnitOfMeasurement => "%";
-
-        protected override string _component => "sensor";
-
-        private string GetState()
+        public HumiditySensor(Sensor sensor)
         {
-            var match = Regex.Match(_sensor.Status, @"{WEB_MSG_RH_HUMIDITY}\s*(?'value'\d+\.?\d*)");
+            _id = sensor.SensorId;
 
-            if (match.Success) { return match.Groups["value"].Value; }
-            return "0";
+            DeclareStaticValue("name", sensor.Name + " - Humidity");
+            DeclareStaticValue("unique_id", sensor.SensorId + "HUMIDITY");
+            DeclareStaticValue("device_class", "humidity");
+            DeclareStaticValue("unit_of_measurement", "%");
+
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
         }
 
-        public HumiditySensor(IConfiguration configuration, Sensor sensor, IList<Logrow> logRows = default)
-        : base(configuration)
+        public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            _sensor = sensor;
-            _logRows = logRows??new Logrow[0];
+            var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == _id);
+            var match = Regex.Match(sensor.Status, @"{WEB_MSG_RH_HUMIDITY}\s*(?'value'\d+\.?\d*)");
 
-            UniqueId = _sensor.SensorId + "HUMIDITY";
-            Name = GetValue(nameof(Name), sensor.Name + " - Humidity");
-            DeviceClass = GetValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
-        }
-
-        private string GetDeviceClassDefaultValue()
-        {
-            return "humidity";
+            if (match.Success) { return Task.FromResult(match.Groups["value"].Value); }
+            return Task.FromResult("0");
         }
     }
 }

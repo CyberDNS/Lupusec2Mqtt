@@ -1,54 +1,39 @@
-using System;
-using System.Collections.Generic;
+﻿using Lupusec2Mqtt.Lupusec.Dtos;
+using Lupusec2Mqtt.Lupusec;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using System.Linq;
 using System.Text.RegularExpressions;
-using Lupusec2Mqtt.Lupusec.Dtos;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+using System.Security.Cryptography;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class TemperatureSensor : Device, IDevice, IStateProvider
+    public class TemperatureSensor : Device
     {
-        protected readonly Sensor _sensor;
-        protected readonly IList<Logrow> _logRows;
+        private readonly string _id;
 
-        [JsonProperty("device_class")]
-        public string DeviceClass { get; set; }
+        public override string Component => "sensor";
 
-        [JsonProperty("state_topic")]
-        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
-
-        [JsonIgnore]
-        public string State => GetState();
-
-        [JsonProperty("unit_of_measurement")]
-        public string UnitOfMeasurement => "\x00B0C";
-
-        protected override string _component => "sensor";
-
-        private string GetState()
+        public TemperatureSensor(Sensor sensor)
         {
-            var match = Regex.Match(_sensor.Status, @"{WEB_MSG_TS_DEGREE}\s*(?'value'\d+\.?\d*)");
+            _id = sensor.SensorId;
 
-            if (match.Success) { return match.Groups["value"].Value; }
-            return "0";
+            DeclareStaticValue("name", sensor.Name + " - Temperature");
+            DeclareStaticValue("unique_id", sensor.SensorId + "TEMPERATURE");
+            DeclareStaticValue("device_class", "temperature");
+            DeclareStaticValue("unit_of_measurement", "\x00B0C");
+
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
         }
 
-        public TemperatureSensor(IConfiguration configuration, Sensor sensor, IList<Logrow> logRows = default)
-        : base(configuration)
+        public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            _sensor = sensor;
-            _logRows = logRows??new Logrow[0];
+            var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == _id);
+            var match = Regex.Match(sensor.Status, @"{WEB_MSG_TS_DEGREE}\s*(?'value'\d+\.?\d*)");
 
-            UniqueId = _sensor.SensorId + "TEMPERATURE";
-            Name = GetValue(nameof(Name), sensor.Name + " - Temperature");
-            DeviceClass = GetValue(nameof(DeviceClass), GetDeviceClassDefaultValue());
-        }
-
-        private string GetDeviceClassDefaultValue()
-        {
-            return "temperature";
+            if (match.Success) { return Task.FromResult(match.Groups["value"].Value); }
+            return Task.FromResult("0");
         }
     }
 }

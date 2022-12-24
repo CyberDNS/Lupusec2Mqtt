@@ -15,6 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Polly;
 using Serilog.Core;
 using Serilog;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
 
 namespace Lupusec2Mqtt
 {
@@ -29,7 +30,14 @@ namespace Lupusec2Mqtt
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddHostedService<PollingHostedService>();
+            services.AddHostedService<MainLoop>();
+
+            services.Scan(scan =>
+                scan.FromApplicationDependencies()
+                    .AddClasses(classes => classes.AssignableTo<IDeviceFactory>())
+                    .AsImplementedInterfaces()
+                    .WithTransientLifetime()
+            );
 
             services.AddHttpClient<LupusecTokenHandler>(client =>
             {
@@ -51,16 +59,25 @@ namespace Lupusec2Mqtt
                 (ex, timespan) => LupusecTokenHandler.ResetToken());
             });
 
-            services.AddHttpClient<ILupusecService, LupusecService>(client =>
+            if (Configuration.GetValue<bool>("Lupusec:MockMode"))
             {
-                client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
-                client.DefaultRequestHeaders.Accept.Clear();
-                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-                client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
-                Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
-            })
-            .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
-            .AddHttpMessageHandler<LupusecTokenHandler>();
+                services.AddSingleton<ILupusecService, MockLupusecService>();
+            }
+            else 
+            { 
+                services.AddHttpClient<ILupusecService, LupusecService>(client =>
+                {
+                    client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
+                })
+                .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
+                .AddHttpMessageHandler<LupusecTokenHandler>();
+            }
+
+            services.AddSingleton<LupusecCache>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

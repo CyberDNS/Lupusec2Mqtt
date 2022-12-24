@@ -1,63 +1,69 @@
+﻿using Lupusec2Mqtt.Lupusec;
 using Lupusec2Mqtt.Lupusec.Dtos;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
+using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Threading.Tasks;
+using System.Xml;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class AlarmControlPanel : Device, IDevice, IStateProvider
+    public class AlarmControlPanel : Device
     {
-        protected override string _component => "alarm_control_panel";
+        private readonly int _area;
 
-        private readonly PanelCondition _panelCondition;
-        private readonly Pcondform _panelConditionForm;
+        public override string Component => "alarm_control_panel";
 
-
-
-        [JsonProperty("state_topic")]
-        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
-
-        [JsonProperty("command_topic")]
-        public string CommandTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/set");
-
-        [JsonIgnore]
-        public string State => GetState();
-
-        public AlarmControlPanel(IConfiguration configuration, PanelCondition panelCondition, int area)
-        : base(configuration)
+        public AlarmControlPanel(IConfiguration configuration, Pcondform panelForm, int area)
         {
-            _panelCondition = panelCondition;
+            _area = area;
 
-            switch (area)
-            {
-                case 1:
-                    _panelConditionForm = _panelCondition.forms.pcondform1;
-                    break;
-                case 2:
-                    _panelConditionForm = _panelCondition.forms.pcondform2;
-                    break;
-            }
+            DeclareStaticValue("name", $"Area {area}");
+            DeclareStaticValue("unique_id", $"lupusec_alarm_area{area}");
 
-            Name = $"Area {area}";
-            UniqueId = $"lupusec_alarm_area{area}";
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
+
+            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/set", SetAlarm);
         }
 
-        private string GetState()
+        private Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            switch (_panelConditionForm.mode)
+            Pcondform pcondform = null;
+            if (_area == 1) { pcondform = lupusecService.PanelCondition.forms.pcondform1; }
+            else if (_area == 2) { pcondform = lupusecService.PanelCondition.forms.pcondform2; }
+
+            switch (pcondform.mode)
             {
-                case AlarmMode.Disarmed: 
-                    return "disarmed";
-                case AlarmMode.FullArm: 
-                    return "armed_away";
+                case AlarmMode.Disarmed:
+                    return Task.FromResult("disarmed");
+                case AlarmMode.FullArm:
+                    return Task.FromResult("armed_away");
                 case AlarmMode.HomeArm1:
-                    return "armed_night";
+                    return Task.FromResult("armed_night");
                 case AlarmMode.HomeArm2:
-                    return "armed_home";
+                    return Task.FromResult("armed_home");
                 case AlarmMode.HomeArm3:
-                    return "armed_vacation";
+                    return Task.FromResult("armed_vacation");
                 default:
-                    return null;
+                    logger.LogError("Unknown mode {Mode} provided for device {Device}", pcondform.mode, this);
+                    return Task.FromResult((string)null);
             }
         }
+
+        private async Task SetAlarm(ILogger logger, ILupusecService lupusecService, string mode)
+        {
+            try
+            {
+                logger.LogInformation("Area {Area} set to {Mode}", _area, mode);
+                await lupusecService.SetAlarmMode(_area, (AlarmMode)Enum.Parse(typeof(AlarmModeAction), mode));
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "An error occured while setting alarm mode to Area {Area} set to {Mode}", _area, mode);
+            }
+        }
+
     }
 }

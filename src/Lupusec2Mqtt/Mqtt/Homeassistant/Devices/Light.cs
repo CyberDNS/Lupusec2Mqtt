@@ -1,47 +1,39 @@
-﻿using Lupusec2Mqtt.Lupusec;
-using Lupusec2Mqtt.Lupusec.Dtos;
-using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using Lupusec2Mqtt.Lupusec.Dtos;
+using Lupusec2Mqtt.Lupusec;
+using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Xml;
+using System;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class Light : Device, IDevice, IStateProvider, ISettable
+    public class Light : Device
     {
-        protected readonly PowerSwitch _powerSwitch;
+        public override string Component => "light";
 
-        [JsonProperty("state_topic")]
-        public string StateTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/state");
-
-        [JsonProperty("command_topic")]
-        public string CommandTopic => EscapeTopic($"homeassistant/{_component}/lupusec/{UniqueId}/set");
-
-        protected override string _component => "light";
-
-        [JsonIgnore]
-        public string State => GetState();
-
-        private string GetState()
+        public Light(PowerSwitch powerSwitch)
         {
-            return _powerSwitch.Status.Contains("{WEB_MSG_DIMMER_ON}") ? "ON" : "OFF";
+            DeclareStaticValue("name", powerSwitch.Name);
+            DeclareStaticValue("unique_id", powerSwitch.Id);
+
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
+
+            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/set", ExecuteCommand);
         }
 
-        public void SetState(string state, ILupusecService lupusecService)
+        public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            lupusecService.SetSwitch(UniqueId, state.Equals("on", StringComparison.OrdinalIgnoreCase));
+            var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue("unique_id"));
+            var result = powerSwitch.Status.Contains("{WEB_MSG_DIMMER_ON}") ? "ON" : "OFF";
+
+            return Task.FromResult(result);
         }
 
-
-        public Light(IConfiguration configuration, PowerSwitch powerSwitch)
-        : base(configuration)
+        public async Task ExecuteCommand(ILogger logger, ILupusecService lupusecService, string command)
         {
-            _powerSwitch = powerSwitch;
-
-            UniqueId = _powerSwitch.Id;
-            Name = GetValue(nameof(Name), _powerSwitch.Name);
+            await lupusecService.SetSwitch(GetStaticValue("unique_id"), command.Equals("on", StringComparison.OrdinalIgnoreCase));
         }
     }
 }

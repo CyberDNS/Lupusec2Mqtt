@@ -10,6 +10,6 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
     public class PowerSwitchList
     {
         [JsonProperty("pssrows")]
-        public PowerSwitch[] PowerSwitches { get; set; }
+        public PowerSwitch[] PowerSwitches { get; set; } = Array.Empty<PowerSwitch>();
     }
 }
