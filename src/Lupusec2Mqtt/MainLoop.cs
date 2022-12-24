@@ -70,14 +70,15 @@ namespace Lupusec2Mqtt
                         try
                         {
                             await command.ExecuteCommand.Invoke(_logger, _lupusecService, input);
+                            _logger.LogInformation("Command {Topic} of device {Device} executed with input {Input}", command.CommandTopic, device, input);
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error during command execution!");
+                            _logger.LogError(ex, "Error during command execution on command {Topic} of device {Device}!", command.CommandTopic, device);
                         }
                     });
 
-                    _logger.LogInformation("Command topic {Topic} registred for device {Device}", command.CommandTopic, device);
+                    _logger.LogInformation("Command {Topic} registered for device {Device}", command.CommandTopic, device);
                 }
 
                 _mqttService.Publish(device.ConfigTopic, JsonSerializer.Serialize(dto));
@@ -92,7 +93,7 @@ namespace Lupusec2Mqtt
             {
                 if (--_logCounter <= 0)
                 {
-                    _logger.LogInformation($"Polling... (Every {_logEveryNCycle}th cycle is logged)");
+                    _logger.LogDebug($"Polling... (Every {_logEveryNCycle}th cycle is logged)");
                     _logCounter = _logEveryNCycle;
                 }
 
@@ -114,7 +115,7 @@ namespace Lupusec2Mqtt
                             _values[query.ValueTopic] = value;
                             _mqttService.Publish(query.ValueTopic, value);
 
-                            _logger.LogInformation("Value for topic {Topic} changed from {oldValue} to {newValue}", query.ValueTopic, oldValue, value);
+                            _logger.LogInformation("Value for topic {Topic} on device {Device} changed from {oldValue} to {newValue}", query.ValueTopic, device, oldValue, value);
                         }
                     }
                 }
