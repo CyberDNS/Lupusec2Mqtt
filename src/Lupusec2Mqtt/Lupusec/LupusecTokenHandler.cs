@@ -29,7 +29,7 @@ namespace Lupusec2Mqtt.Lupusec
             HttpResponseMessage response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            ActionResult responseBody = await response.Content.ReadAsAsync<ActionResult>();
+            LupusecResponseBody responseBody = await response.Content.ReadAsAsync<LupusecResponseBody>();
 
             return responseBody.Message;
         }
