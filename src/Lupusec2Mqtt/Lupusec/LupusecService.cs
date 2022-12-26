@@ -70,7 +70,7 @@ namespace Lupusec2Mqtt.Lupusec
         }
 
 
-        public async Task<ActionResult> SetAlarmMode(int area, AlarmMode mode)
+        public async Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode)
         {
             IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
                 { new KeyValuePair<string, string>("area", $"{area}") },
@@ -80,12 +80,13 @@ namespace Lupusec2Mqtt.Lupusec
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondPost");
             request.Content = new FormUrlEncodedContent(formData);
 
-            ActionResult responseBody = await SendRequest<ActionResult>(request);
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
+
 
             return responseBody;
         }
 
-        public async Task<ActionResult> SetSwitch(string uniqueId, bool onOff)
+        public async Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff)
         {
             IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
                 { new KeyValuePair<string, string>("switch", $"{(onOff ? 1 : 0)}") },
@@ -96,12 +97,12 @@ namespace Lupusec2Mqtt.Lupusec
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceSwitchPSSPost");
             request.Content = new FormUrlEncodedContent(formData);
 
-            ActionResult responseBody = await SendRequest<ActionResult>(request);
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
 
             return responseBody;
         }
 
-        public async Task<ActionResult> SetCoverPosition(byte area, byte zone, string command)
+        public async Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command)
         {
             IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
                 { new KeyValuePair<string, string>("a", area.ToString()) },
@@ -112,24 +113,25 @@ namespace Lupusec2Mqtt.Lupusec
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/haExecutePost");
             request.Content = new FormUrlEncodedContent(formData);
 
-            ActionResult responseBody = await SendRequest<ActionResult>(request);
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
 
             return responseBody;
         }
 
-        private async Task<T> SendRequest<T>(HttpRequestMessage request)
+        private async Task<T> SendRequest<T>(HttpRequestMessage request, LogLevel logLevel = LogLevel.Trace)
         {
             try
             {
                 HttpResponseMessage response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 T responseBody = await response.Content.ReadAsAsync<T>();
-                _logger.LogDebug("This was the Answer for requesting {uri}:\n{body}", request.RequestUri, responseBody);
+
+                _logger.Log(logLevel, "Response for {Method} {Uri}:\nRequest:\n{Request}\nResponse:\n{Response}\nResponse body:\n{Body}", request.Method, request.RequestUri, request, response, responseBody);
                 return responseBody;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Call to Lupusec has an error! Request was:\n{request}", request);
+                _logger.LogError(ex, "Error calling {Method} {Uri}:\nRequest:\n{Request}", request.Method, request.RequestUri, request);
             }
             return default(T);
         }

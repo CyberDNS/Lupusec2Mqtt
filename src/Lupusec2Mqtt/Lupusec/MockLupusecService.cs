@@ -62,19 +62,19 @@ namespace Lupusec2Mqtt.Lupusec
             PanelCondition = await GetPanelConditionAsync();
         }
 
-        public async Task<ActionResult> SetAlarmMode(int area, AlarmMode mode)
+        public async Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode)
         {
-            return new ActionResult();
+            return new LupusecResponseBody();
         }
 
-        public async Task<ActionResult> SetSwitch(string uniqueId, bool onOff)
+        public async Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff)
         {
-            return new ActionResult();
+            return new LupusecResponseBody();
         }
 
-        public async Task<ActionResult> SetCoverPosition(byte area, byte zone, string command)
+        public async Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command)
         {
-            return new ActionResult();
+            return new LupusecResponseBody();
         }
 
         private string GetMockFileContent(string type)

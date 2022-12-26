@@ -17,8 +17,8 @@ namespace Lupusec2Mqtt.Lupusec
 
         Task PollAllAsync();
 
-        Task<ActionResult> SetAlarmMode(int area, AlarmMode mode);
-        Task<ActionResult> SetSwitch(string uniqueId, bool onOff);
-        Task<ActionResult> SetCoverPosition(byte area, byte zone, string command);
+        Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode);
+        Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff);
+        Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command);
     }
 }

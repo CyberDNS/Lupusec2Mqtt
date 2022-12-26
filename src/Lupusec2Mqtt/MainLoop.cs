@@ -27,12 +27,7 @@ namespace Lupusec2Mqtt
 
         private TimeSpan _pollFrequency = TimeSpan.FromSeconds(2);
 
-        private int _logCounter = 0;
-        private int _logEveryNCycle = 5;
-
         private Dictionary<string, string> _values = new Dictionary<string, string>();
-
-        private CancellationTokenSource _cancellationTokenSource;
 
         public MainLoop(ILogger<MainLoop> logger, IConfiguration configuration, ILupusecService lupusecService, IEnumerable<IDeviceFactory> factories)
         {
@@ -40,8 +35,6 @@ namespace Lupusec2Mqtt
             _lupusecService = lupusecService;
             _factories = factories;
             _mqttService = new MqttService(configuration);
-
-            _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
@@ -91,12 +84,6 @@ namespace Lupusec2Mqtt
         {
             try
             {
-                if (--_logCounter <= 0)
-                {
-                    _logger.LogDebug($"Polling... (Every {_logEveryNCycle}th cycle is logged)");
-                    _logCounter = _logEveryNCycle;
-                }
-
                 List<Device> devices = await GetDevices();
 
                 foreach (var device in devices)
@@ -107,7 +94,7 @@ namespace Lupusec2Mqtt
                         if (!_values.ContainsKey(query.ValueTopic)) { _values.Add(query.ValueTopic, null); }
 
                         var value = await query.GetValue.Invoke(_logger, _lupusecService);
-                        _logger.LogDebug("Querying values for {Device} on topic {Topic} => {Value}", device, query.ValueTopic, value);
+                        _logger.LogTrace("Querying values for {Device} on topic {Topic} => {Value}", device, query.ValueTopic, value);
 
                         if (_values[query.ValueTopic] != value)
                         {
