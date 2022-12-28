@@ -14,9 +14,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
     {
         public abstract string Component { get; }
 
-        public virtual string ConfigTopic => EscapeTopic($"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/config");
+        public virtual string ConfigTopic => EscapeTopic($"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/config");
 
-        private Dictionary<string, string> _staticValues = new Dictionary<string, string>();
+        private Dictionary<string, object> _staticValues = new Dictionary<string, object>();
         public IEnumerable<StaticValue> StaticValues { get => _staticValues.Select(kvp => new StaticValue(kvp.Key, kvp.Value)); }
 
 
@@ -27,7 +27,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
         private List<Command> _commands = new List<Command>();
         public IEnumerable<Command> Commands { get => _commands.ToArray(); }
 
-        protected void DeclareStaticValue(string name, string value)
+        protected void DeclareStaticValue(string name, object value)
         {
             _staticValues.Add(name, value);
         }
@@ -42,9 +42,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
             _commands.Add(new Command(name, commandTopic, executeCommand));
         }
 
-        public string GetStaticValue(string key)
+        public T GetStaticValue<T>(string key)
         {
-            return _staticValues[key];
+            return (T)_staticValues[key];
         }
 
         protected string EscapeTopic(string topic)
@@ -54,7 +54,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
 
         public override string ToString()
         {
-            return $"{GetStaticValue("unique_id")} - {GetStaticValue("name")}";
+            return $"{GetStaticValue<string>("unique_id")} - {GetStaticValue<string>("name")}";
         }
     }
 }

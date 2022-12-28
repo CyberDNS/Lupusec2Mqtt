@@ -19,12 +19,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("unique_id", sensor.SensorId);
             DeclareStaticValue("device_class", "window");
 
-            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }
 
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue("unique_id"));
+            var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
             var result = sensor.Status == "{WEB_MSG_DC_OPEN}" ? "ON" : "OFF";
 
             return Task.FromResult(result);

@@ -4,9 +4,9 @@
     {
         public string Name { get; }
 
-        public string Value { get; }
+        public object Value { get; }
 
-        public StaticValue(string name, string value)
+        public StaticValue(string name, object value)
         {
             Name = name;
             Value = value;

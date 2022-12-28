@@ -18,14 +18,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("name", powerSwitch.Name);
             DeclareStaticValue("unique_id", powerSwitch.Id);
 
-            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
 
-            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/set", ExecuteCommand);
+            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/set", ExecuteCommand);
         }
 
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue("unique_id"));
+            var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue<string>("unique_id"));
             var result = powerSwitch.Status.Contains("{WEB_MSG_DL_LOCKED}") ? "LOCKED" : "UNLOCKED";
 
             return Task.FromResult(result);
@@ -33,7 +33,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public async Task ExecuteCommand(ILogger logger, ILupusecService lupusecService, string command)
         {
-            await lupusecService.SetSwitch(GetStaticValue("unique_id"), command.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
+            await lupusecService.SetSwitch(GetStaticValue<string>("unique_id"), command.Equals("LOCK", StringComparison.OrdinalIgnoreCase));
         }
     }
 }
