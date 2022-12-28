@@ -23,9 +23,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("name", $"Area {area}");
             DeclareStaticValue("unique_id", $"lupusec_alarm_area{area}");
 
-            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/state", GetState);
+            DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
 
-            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue("unique_id")}/set", SetAlarm);
+            DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/set", SetAlarm);
         }
 
         private Task<string> GetState(ILogger logger, ILupusecService lupusecService)
