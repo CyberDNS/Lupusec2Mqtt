@@ -34,7 +34,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var shutter = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
-            var result = shutter.Level <= 0 ? "closed" : "open";
+            var result = Convert.ToInt32(shutter.Level) <= 0 ? "closed" : "open";
 
             return Task.FromResult(result);
         }
