@@ -8,6 +8,9 @@ using System;
 using System.Reflection.Metadata.Ecma335;
 using System.IO;
 using Newtonsoft.Json;
+using System.Net.Http.Json;
+using System.Dynamic;
+using Microsoft.JSInterop.Infrastructure;
 
 namespace Lupusec2Mqtt.Lupusec
 {
@@ -15,19 +18,23 @@ namespace Lupusec2Mqtt.Lupusec
     {
         private readonly ILogger<LupusecService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly LupusecCache _cache;
+        private readonly HttpClient _client;
 
-        public SensorList SensorList { get; private set; }
+        public SensorList SensorList => _cache.SensorList;
 
-        public RecordList RecordList { get; private set; }
+        public RecordList RecordList => _cache.RecordList;
 
-        public PowerSwitchList PowerSwitchList { get; private set; }
+        public PowerSwitchList PowerSwitchList => _cache.PowerSwitchList;
 
-        public PanelCondition PanelCondition { get; private set; }
+        public PanelCondition PanelCondition => _cache.PanelCondition;
 
-        public MockLupusecService(ILogger<LupusecService> logger, IConfiguration configuration)
+        public MockLupusecService(ILogger<LupusecService> logger, HttpClient client, IConfiguration configuration, LupusecCache cache)
         {
             _logger = logger;
             _configuration = configuration;
+            _cache = cache;
+            _client = client;
         }
 
         public Task<SensorList> GetSensorsAsync()
@@ -56,26 +63,26 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task PollAllAsync()
         {
-            SensorList = await GetSensorsAsync();
-            RecordList = await GetRecordsAsync();
-            PowerSwitchList = await GetPowerSwitches();
-            PanelCondition = await GetPanelConditionAsync();
+            _cache.UpdateSensorList(await GetSensorsAsync());
+            _cache.UpdateRecordList(await GetRecordsAsync());
+            _cache.UpdatePowerSwitchList(await GetPowerSwitches());
+            _cache.UpdatePanelCondition(await GetPanelConditionAsync());
         }
 
-        public async Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode)
-        {
-            return new LupusecResponseBody();
-        }
+        //public async Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode)
+        //{
+        //    return new LupusecResponseBody();
+        //}
 
-        public async Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff)
-        {
-            return new LupusecResponseBody();
-        }
+        //public async Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff)
+        //{
+        //    return new LupusecResponseBody();
+        //}
 
-        public async Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command)
-        {
-            return new LupusecResponseBody();
-        }
+        //public async Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command)
+        //{
+        //    return new LupusecResponseBody();
+        //}
 
         private string GetMockFileContent(string type)
         {
@@ -87,5 +94,88 @@ namespace Lupusec2Mqtt.Lupusec
 
             return null;
         }
+
+
+
+
+
+        public async Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode)
+        {
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("area", $"{area}") },
+                { new KeyValuePair<string, string>("mode", $"{(byte)mode}") },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/panelCondPost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
+
+
+            return responseBody;
+        }
+
+        public async Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff)
+        {
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("switch", $"{(onOff ? 1 : 0)}") },
+                { new KeyValuePair<string, string>("pd", string.Empty) },
+                { new KeyValuePair<string, string>("id", $"{uniqueId}") },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceSwitchPSSPost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
+
+            return responseBody;
+        }
+
+        public async Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command)
+        {
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("a", area.ToString()) },
+                { new KeyValuePair<string, string>("z", zone.ToString()) },
+                { new KeyValuePair<string, string>("shutter", command) },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/haExecutePost");
+
+            var content = new FormUrlEncodedContent(formData);
+            var formUrlEncodedString = await content.ReadAsStringAsync();
+
+            request.Content = new FormUrlEncodedContent(new[] { KeyValuePair.Create( "exec", formUrlEncodedString) });
+
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
+
+            return responseBody;
+        }
+
+        private async Task<T> SendRequest<T>(HttpRequestMessage request, LogLevel logLevel = LogLevel.Trace)
+        {
+            try
+            {
+                string requestBody = null;
+                if (request.Content is not null)
+                {
+                    requestBody = await request.Content.ReadAsStringAsync();
+                }
+
+                _logger.Log(logLevel, "Request for {Method} {Uri}:\nRequest:\n{Request}\nRequest body:\n{Body}", request.Method, request.RequestUri, request, requestBody);
+
+                HttpResponseMessage response = await _client.SendAsync(request);
+                response.EnsureSuccessStatusCode();
+                T responseBody = await response.Content.ReadAsAsync<T>();
+
+                _logger.Log(logLevel, "Response for {Method} {Uri}:\nResponse:\n{Response}\nResponse body:\n{Body}", request.Method, request.RequestUri, response, responseBody);
+                return responseBody;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error calling {Method} {Uri}:\nRequest:\n{Request}", request.Method, request.RequestUri, request);
+            }
+            return default(T);
+        }
+
     }
 }

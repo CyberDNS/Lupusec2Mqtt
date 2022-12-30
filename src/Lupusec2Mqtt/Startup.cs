@@ -61,7 +61,18 @@ namespace Lupusec2Mqtt
 
             if (Configuration.GetValue<bool>("Lupusec:MockMode"))
             {
-                services.AddSingleton<ILupusecService, MockLupusecService>();
+                //services.AddSingleton<ILupusecService, MockLupusecService>();
+
+                services.AddHttpClient<ILupusecService, MockLupusecService>(client =>
+                {
+                    client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
+                    client.DefaultRequestHeaders.Accept.Clear();
+                    client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Basic",
+                    Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
+                })
+                .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
+                .AddHttpMessageHandler<LupusecTokenHandler>();
             }
             else 
             { 
