@@ -33,7 +33,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            var shutter = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
+            var shutter = lupusecService.SensorList2.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
             var result = Convert.ToInt32(shutter.Level) <= 0 ? "closed" : "open";
 
             return Task.FromResult(result);
@@ -41,7 +41,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         private Task<string> GetPosition(ILogger logger, ILupusecService lupusecService)
         {
-            var shutter = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
+            var shutter = lupusecService.SensorList2.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
             var result = shutter.Level;
 
             return Task.FromResult(result);
@@ -49,7 +49,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public async Task ExecuteCommand(ILogger logger, ILupusecService lupusecService, string command)
         {
-            var shutter = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
+            var shutter = lupusecService.SensorList2.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
 
             var lupusCommand = string.Empty;
             if (command.Equals("OPEN")) { lupusCommand = "on"; }
@@ -61,7 +61,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public async Task SetPosition(ILogger logger, ILupusecService lupusecService, string command)
         {
-            var shutter = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
+            var shutter = lupusecService.SensorList2.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
 
             await lupusecService.SetCoverPosition(shutter.Area, shutter.Zone, command);
         }

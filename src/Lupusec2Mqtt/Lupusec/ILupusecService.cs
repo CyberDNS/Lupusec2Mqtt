@@ -6,11 +6,14 @@ namespace Lupusec2Mqtt.Lupusec
     public interface ILupusecService
     {
         SensorList SensorList { get; }
+        SensorList SensorList2 { get; }
+
         RecordList RecordList { get; }
         PowerSwitchList PowerSwitchList { get; }
         PanelCondition PanelCondition { get; }
 
         Task<SensorList> GetSensorsAsync();
+        Task<SensorList> GetSensors2Async();
         Task<RecordList> GetRecordsAsync();
         Task<PowerSwitchList> GetPowerSwitches();
         Task<PanelCondition> GetPanelConditionAsync();

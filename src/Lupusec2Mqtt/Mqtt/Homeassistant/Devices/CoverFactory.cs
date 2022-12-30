@@ -15,7 +15,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public override Task<IEnumerable<Device>> GenerateDevicesAsync()
         {
-            var result = _lupusecService.SensorList.Sensors
+            var result = _lupusecService.SensorList2.Sensors
                 .Where(s => s.TypeId == 76)
                 .Select(s => new Cover(s))
                 .ToArray();
