@@ -30,7 +30,7 @@ namespace Lupusec2Mqtt.Lupusec
             _logger = logger;
             _client = client;
             _configuration = configuration;
-            _cache=cache;
+            _cache = cache;
         }
 
         public async Task<SensorList> GetSensorsAsync()
@@ -111,7 +111,11 @@ namespace Lupusec2Mqtt.Lupusec
             };
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/haExecutePost");
-            request.Content = new FormUrlEncodedContent(formData);
+
+            var content = new FormUrlEncodedContent(formData);
+            var formUrlEncodedString = await content.ReadAsStringAsync();
+
+            request.Content = new FormUrlEncodedContent(new[] { KeyValuePair.Create("exec", formUrlEncodedString) });
 
             LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
 
@@ -122,11 +126,19 @@ namespace Lupusec2Mqtt.Lupusec
         {
             try
             {
+                string requestBody = null;
+                if (request.Content is not null)
+                {
+                    requestBody = await request.Content.ReadAsStringAsync();
+                }
+
+                _logger.Log(logLevel, "Request for {Method} {Uri}:\nRequest:\n{Request}\nRequest body:\n{Body}", request.Method, request.RequestUri, request, requestBody);
+
                 HttpResponseMessage response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 T responseBody = await response.Content.ReadAsAsync<T>();
 
-                _logger.Log(logLevel, "Response for {Method} {Uri}:\nRequest:\n{Request}\nResponse:\n{Response}\nResponse body:\n{Body}", request.Method, request.RequestUri, request, response, responseBody);
+                _logger.Log(logLevel, "Response for {Method} {Uri}:\nResponse:\n{Response}\nResponse body:\n{Body}", request.Method, request.RequestUri, response, responseBody);
                 return responseBody;
             }
             catch (Exception ex)
