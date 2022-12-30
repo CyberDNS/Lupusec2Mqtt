@@ -35,7 +35,7 @@ namespace Lupusec2Mqtt.Lupusec
 
         public async Task<SensorList> GetSensorsAsync()
         {
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceListGet");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceGet");
             SensorList responseBody = await SendRequest<SensorList>(request);
             return responseBody;
         }
