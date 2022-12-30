@@ -18,6 +18,7 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly LupusecCache _cache;
 
         public SensorList SensorList => _cache.SensorList;
+        public SensorList SensorList2 => _cache.SensorList2;
 
         public RecordList RecordList => _cache.RecordList;
 
@@ -34,6 +35,13 @@ namespace Lupusec2Mqtt.Lupusec
         }
 
         public async Task<SensorList> GetSensorsAsync()
+        {
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceListGet");
+            SensorList responseBody = await SendRequest<SensorList>(request);
+            return responseBody;
+        }
+
+        public async Task<SensorList> GetSensors2Async()
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceGet");
             SensorList responseBody = await SendRequest<SensorList>(request);
@@ -64,6 +72,7 @@ namespace Lupusec2Mqtt.Lupusec
         public async Task PollAllAsync()
         {
             _cache.UpdateSensorList(await GetSensorsAsync());
+            _cache.UpdateSensorList2(await GetSensors2Async());
             _cache.UpdateRecordList(await GetRecordsAsync());
             _cache.UpdatePowerSwitchList(await GetPowerSwitches());
             _cache.UpdatePanelCondition(await GetPanelConditionAsync());

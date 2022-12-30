@@ -22,6 +22,7 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly HttpClient _client;
 
         public SensorList SensorList => _cache.SensorList;
+        public SensorList SensorList2 => _cache.SensorList2;
 
         public RecordList RecordList => _cache.RecordList;
 
@@ -38,6 +39,12 @@ namespace Lupusec2Mqtt.Lupusec
         }
 
         public Task<SensorList> GetSensorsAsync()
+        {
+            var content = GetMockFileContent("sensors");
+            return Task.FromResult(content is not null ? JsonConvert.DeserializeObject<SensorList>(content) : new SensorList());
+        }
+
+        public Task<SensorList> GetSensors2Async()
         {
             var content = GetMockFileContent("sensors");
             return Task.FromResult(content is not null ? JsonConvert.DeserializeObject<SensorList>(content) : new SensorList());
