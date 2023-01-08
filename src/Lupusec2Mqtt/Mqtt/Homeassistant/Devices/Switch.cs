@@ -13,6 +13,10 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
     {
         public override string Component => "switch";
 
+        private string _temporaryState = null;
+        private DateTime _lastCommand = DateTime.MinValue;
+        private readonly TimeSpan _temporaryTimeout = TimeSpan.FromSeconds(4);
+
         public Switch(PowerSwitch powerSwitch)
         {
             DeclareStaticValue("name", powerSwitch.Name);
@@ -25,15 +29,22 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
-            var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue<string>("unique_id"));
-            var result = powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}") ? "ON" : "OFF";
+            if (DateTime.UtcNow - _lastCommand > _temporaryTimeout)
+            {
+                var powerSwitch = lupusecService.PowerSwitchList.PowerSwitches.Single(s => s.Id == GetStaticValue<string>("unique_id"));
+                var result = powerSwitch.Status.Contains("{WEB_MSG_PSS_ON}") ? "ON" : "OFF";
 
-            return Task.FromResult(result);
+                return Task.FromResult(result);
+            }
+
+            return Task.FromResult(_temporaryState);
         }
 
         public async Task ExecuteCommand(ILogger logger, ILupusecService lupusecService, string command)
         {
+            _temporaryState = command.Equals("on", StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF";
             await lupusecService.SetSwitch(GetStaticValue<string>("unique_id"), command.Equals("on", StringComparison.OrdinalIgnoreCase));
+            _lastCommand = DateTime.UtcNow;
         }
     }
 }
