@@ -64,6 +64,8 @@ namespace Lupusec2Mqtt
                         {
                             await command.ExecuteCommand.Invoke(_logger, _lupusecService, input);
                             _logger.LogInformation("Command {Topic} of device {Device} executed with input {Input}", command.CommandTopic, device, input);
+                            await _lupusecService.PollAllAsync();
+                            await UpdateStates(device);
                         }
                         catch (Exception ex)
                         {
@@ -88,28 +90,33 @@ namespace Lupusec2Mqtt
 
                 foreach (var device in devices)
                 {
-                    foreach (var query in device.Queries)
-                    {
-
-                        if (!_values.ContainsKey(query.ValueTopic)) { _values.Add(query.ValueTopic, null); }
-
-                        var value = await query.GetValue.Invoke(_logger, _lupusecService);
-                        _logger.LogTrace("Querying values for {Device} on topic {Topic} => {Value}", device, query.ValueTopic, value);
-
-                        if (_values[query.ValueTopic] != value)
-                        {
-                            var oldValue = _values[query.ValueTopic];
-                            _values[query.ValueTopic] = value;
-                            await _mqttService.PublishAsync(query.ValueTopic, value);
-
-                            _logger.LogInformation("Value for topic {Topic} on device {Device} changed from {oldValue} to {newValue}", query.ValueTopic, device, oldValue, value);
-                        }
-                    }
+                    await UpdateStates(device);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during poll execution!");
+            }
+        }
+
+        private async Task UpdateStates(Device device)
+        {
+            foreach (var query in device.Queries)
+            {
+
+                if (!_values.ContainsKey(query.ValueTopic)) { _values.Add(query.ValueTopic, null); }
+
+                var value = await query.GetValue.Invoke(_logger, _lupusecService);
+                _logger.LogTrace("Querying values for {Device} on topic {Topic} => {Value}", device, query.ValueTopic, value);
+
+                if (_values[query.ValueTopic] != value)
+                {
+                    var oldValue = _values[query.ValueTopic];
+                    _values[query.ValueTopic] = value;
+                    await _mqttService.PublishAsync(query.ValueTopic, value);
+
+                    _logger.LogInformation("Value for topic {Topic} on device {Device} changed from {oldValue} to {newValue}", query.ValueTopic, device, oldValue, value);
+                }
             }
         }
 
