@@ -145,14 +145,15 @@ namespace Lupusec2Mqtt.Lupusec
 
                 HttpResponseMessage response = await _client.SendAsync(request);
                 response.EnsureSuccessStatusCode();
-                T responseBody = await response.Content.ReadAsAsync<T>();
+
                 string responseBodyString = null;
                 if (response.Content is not null)
                 {
                     responseBodyString = await response.Content.ReadAsStringAsync();
                 }
-
                 _logger.Log(logLevel, "Response for {Method} {Uri}:\nResponse:\n{Response}\nResponse body:\n{Body}", request.Method, request.RequestUri, response, responseBodyString);
+
+                T responseBody = await response.Content.ReadAsAsync<T>();
                 return responseBody;
             }
             catch (Exception ex)
