@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using System.Net.Http.Json;
 using System.Dynamic;
 using Microsoft.JSInterop.Infrastructure;
+using System.Text.Json;
 
 namespace Lupusec2Mqtt.Lupusec
 {
@@ -46,7 +47,7 @@ namespace Lupusec2Mqtt.Lupusec
 
         public Task<SensorList> GetSensors2Async()
         {
-            var content = GetMockFileContent("sensors");
+            var content = GetMockFileContent("sensors2");
             return Task.FromResult(content is not null ? JsonConvert.DeserializeObject<SensorList>(content) : new SensorList());
         }
 
@@ -71,6 +72,7 @@ namespace Lupusec2Mqtt.Lupusec
         public async Task PollAllAsync()
         {
             _cache.UpdateSensorList(await GetSensorsAsync());
+            _cache.UpdateSensorList2(await GetSensors2Async());
             _cache.UpdateRecordList(await GetRecordsAsync());
             _cache.UpdatePowerSwitchList(await GetPowerSwitches());
             _cache.UpdatePanelCondition(await GetPanelConditionAsync());

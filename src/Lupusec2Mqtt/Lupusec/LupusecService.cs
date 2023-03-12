@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Lupusec2Mqtt.Lupusec.Dtos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 
 namespace Lupusec2Mqtt.Lupusec
 {
@@ -153,7 +154,8 @@ namespace Lupusec2Mqtt.Lupusec
                 }
                 _logger.Log(logLevel, "Response for {Method} {Uri}:\nResponse:\n{Response}\nResponse body:\n{Body}", request.Method, request.RequestUri, response, responseBodyString);
 
-                T responseBody = await response.Content.ReadAsAsync<T>();
+                // Using System.Text.Json deserialize crashes in some cases with DecoderFallbackException (see issue: #57)
+                T responseBody = JsonConvert.DeserializeObject<T>(responseBodyString);
                 return responseBody;
             }
             catch (Exception ex)
