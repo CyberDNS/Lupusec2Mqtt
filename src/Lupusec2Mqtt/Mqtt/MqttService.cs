@@ -2,6 +2,7 @@
 using MQTTnet;
 using MQTTnet.Client;
 using MQTTnet.Extensions.ManagedClient;
+using MQTTnet.Protocol;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -60,7 +61,14 @@ namespace Lupusec2Mqtt.Mqtt
 
         public async Task PublishAsync(string topic, string payload)
         {
-            await _managedMqttClient.EnqueueAsync(topic, payload);
+            var message = new MqttApplicationMessageBuilder()
+                .WithTopic(topic)
+                .WithPayload(payload)
+                .WithQualityOfServiceLevel(MqttQualityOfServiceLevel.AtLeastOnce)
+                .WithRetainFlag(true)
+                .Build();
+
+            await _managedMqttClient.EnqueueAsync(message);
         }
 
         public async Task StopAsync()
