@@ -30,7 +30,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == _id);
-            var match = Regex.Match(sensor.Status, @"{WEB_MSG_TS_DEGREE}\s*(?'value'\d+\.?\d*)");
+            var match = Regex.Match(sensor.Status, @"{WEB_MSG_TS_DEGREE}\s*(?'value'-?\d+\.?\d*)");
 
             if (match.Success) { return Task.FromResult(match.Groups["value"].Value); }
             return Task.FromResult("0");
