@@ -1,0 +1,21 @@
+version: '3.8'
+services:
+  dev:
+    image: mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm
+    volumes:
+      - ..:/workspace:cached
+    command: sleep infinity
+
+  mqtt:
+    image: eclipse-mosquitto:latest
+    ports:
+      - "1883:1883"
+    volumes:
+      - mosquitto-data:/mosquitto/data
+      - mosquitto-log:/mosquitto/log
+      - ./mosquitto/config:/mosquitto/config:ro
+
+volumes:
+  mosquitto-data:
+  mosquitto-log:
+  mosquitto-config:
