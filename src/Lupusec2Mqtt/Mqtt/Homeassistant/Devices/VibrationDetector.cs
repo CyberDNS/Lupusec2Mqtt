@@ -8,15 +8,15 @@ using System.Threading.Tasks;
 
 namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 {
-    public class SmokeDetector : Device
+    public class VibrationDetector : Device
     {
         public override string Component => "binary_sensor";
 
-        public SmokeDetector(Sensor sensor)
+        public VibrationDetector(Sensor sensor)
         {
             DeclareStaticValue("name", sensor.Name);
             DeclareStaticValue("unique_id", sensor.SensorId);
-            DeclareStaticValue("device_class", "smoke");
+            DeclareStaticValue("device_class", "vibration");
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }

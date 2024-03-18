@@ -4,6 +4,7 @@ services:
     image: mcr.microsoft.com/devcontainers/dotnet:1-8.0-bookworm
     volumes:
       - ..:/workspace:cached
+      - ~/.ssh:/root/.ssh
     command: sleep infinity
 
   mqtt:
