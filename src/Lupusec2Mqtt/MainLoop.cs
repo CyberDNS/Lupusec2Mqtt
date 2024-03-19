@@ -25,7 +25,7 @@ namespace Lupusec2Mqtt
         private readonly IMqttService _mqttService;
         private Timer _timer;
 
-        private TimeSpan _pollFrequency = TimeSpan.FromSeconds(2);
+        private TimeSpan _pollFrequency;
 
         private Dictionary<string, string> _values = new Dictionary<string, string>();
 
@@ -35,6 +35,7 @@ namespace Lupusec2Mqtt
             _lupusecService = lupusecService;
             _factories = factories;
             _mqttService = new MqttService(configuration);
+            _pollFrequency = TimeSpan.FromSeconds(configuration.GetValue<int?>("PollFrequencyInSeconds") ?? 2);
         }
 
         public async Task StartAsync(CancellationToken stoppingToken)
