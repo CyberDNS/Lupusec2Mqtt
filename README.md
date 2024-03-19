@@ -55,7 +55,8 @@ An alternative approach is to use Docker volumes. The settings are located in th
 "Lupusec:Login": "admin",
 "Lupusec:Password": "lupusecpassword",
 "Serilog:MinimumLevel:Default": "Information",
-"MotionSensor:DetectionDuration": 120
+"MotionSensor:DetectionDuration": 120,
+"PollFrequencyInSeconds": 2
 }
 ```
 
