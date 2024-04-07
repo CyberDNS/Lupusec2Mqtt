@@ -24,7 +24,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
-            var result = sensor.StatusEx == 1 ? "ON" : "OFF"; 
+            var result = sensor.StatusEx == 1 || sensor.Status.Equals("DOORBELL", System.StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF"; 
 
             return Task.FromResult(result);
         }
