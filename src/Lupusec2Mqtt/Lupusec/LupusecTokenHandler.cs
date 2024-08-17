@@ -20,7 +20,21 @@ namespace Lupusec2Mqtt.Lupusec
             _token = _token ?? await GetToken();
 
             request.Headers.Add("X-Token", _token);
-            return await base.SendAsync(request, cancellationToken);
+            var response = await base.SendAsync(request, cancellationToken);
+
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            {
+                // Token might be expired, reset and get a new one
+                ResetToken();
+                _token = await GetToken();
+
+                // Retry the request with the new token
+                request.Headers.Remove("X-Token");
+                request.Headers.Add("X-Token", _token);
+                response = await base.SendAsync(request, cancellationToken);
+            }
+
+            return response;
         }
 
         private async Task<string> GetToken()
