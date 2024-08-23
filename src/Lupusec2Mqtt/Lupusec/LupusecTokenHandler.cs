@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Lupusec2Mqtt.Lupusec.Dtos;
+using Microsoft.Extensions.Logging;
 
 namespace Lupusec2Mqtt.Lupusec
 {
@@ -10,9 +11,16 @@ namespace Lupusec2Mqtt.Lupusec
     {
         static private string _token; // Same token for all
         private readonly HttpClient _client;
+        private readonly ILogger _logger;
+
         public LupusecTokenHandler(HttpClient client)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
+        }
+
+        public LupusecTokenHandler(ILogger<LupusecTokenHandler> logger)
+        {
+            _logger = logger;
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -22,8 +30,10 @@ namespace Lupusec2Mqtt.Lupusec
             request.Headers.Add("X-Token", _token);
             var response = await base.SendAsync(request, cancellationToken);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.Content.Headers.ContentType.MediaType == "text/html")
             {
+                _logger.LogDebug("Getting new authorization token due to failed request");
+
                 // Token might be expired, reset and get a new one
                 ResetToken();
                 _token = await GetToken();
