@@ -13,14 +13,10 @@ namespace Lupusec2Mqtt.Lupusec
         private readonly HttpClient _client;
         private readonly ILogger _logger;
 
-        public LupusecTokenHandler(HttpClient client)
-        {
-            _client = client ?? throw new ArgumentNullException(nameof(client));
-        }
-
-        public LupusecTokenHandler(ILogger<LupusecTokenHandler> logger)
+        public LupusecTokenHandler(ILogger<LupusecTokenHandler> logger, HttpClient client)
         {
             _logger = logger;
+            _client = client ?? throw new ArgumentNullException(nameof(client));
         }
 
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
