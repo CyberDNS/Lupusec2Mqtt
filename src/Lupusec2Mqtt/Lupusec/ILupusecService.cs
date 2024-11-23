@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Lupusec2Mqtt.Lupusec.Dtos;
 
@@ -23,5 +24,8 @@ namespace Lupusec2Mqtt.Lupusec
         Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode);
         Task<LupusecResponseBody> SetSwitch(string uniqueId, bool onOff);
         Task<LupusecResponseBody> SetCoverPosition(byte area, byte zone, string command);
+
+        Task<LupusecResponseBody> SetThermostatMode(string uniqueId, ThermostateMode mode);        
+        Task<LupusecResponseBody> SetThermostatTemperature(string uniqueId, int destinationtTemperature);
     }
 }
