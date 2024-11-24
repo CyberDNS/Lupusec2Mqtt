@@ -106,6 +106,7 @@ namespace Lupusec2Mqtt
                 {
                     // generate a small web page with a link to the diagnostics file
                     await context.Response.WriteAsync("<html><body><h1>Lupusec2Mqtt</h1><p><a href=\"/diagnostics\">Download Diagnostics</a></p></body></html>");
+                    context.Response.Headers.Append("Content-Type", "text/html");
                 });
 
                 endpoints.MapGet("/diagnostics", async context =>
