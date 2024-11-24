@@ -77,7 +77,7 @@ namespace Lupusec2Mqtt.Lupusec
             _cache.UpdateRecordList(await GetRecordsAsync());
             _cache.UpdatePowerSwitchList(await GetPowerSwitches());
             _cache.UpdatePanelCondition(await GetPanelConditionAsync());
-        }
+        }       
 
 
         public async Task<LupusecResponseBody> SetAlarmMode(int area, AlarmMode mode)
@@ -132,6 +132,52 @@ namespace Lupusec2Mqtt.Lupusec
             return responseBody;
         }
 
+        public async Task<LupusecResponseBody> SetThermostatMode(string uniqueId, ThermostateMode mode)
+        {
+            IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> { 
+                { new KeyValuePair<string, string>("id", $"{uniqueId}") },
+            };
+
+            if(mode == ThermostateMode.Off) {
+                // Ausschalten deaktiviert auch automatisch den Automodus.
+                formData.Add(new KeyValuePair<string, string>("thermo_mode", "0"));
+                formData.Add(new KeyValuePair<string, string>("act", "t_mode"));
+            }
+            else if(mode == ThermostateMode.Heat) {
+                // Deaktivieren des Automodus aktiviert auch automatisch das Ventil
+                formData.Add(new KeyValuePair<string, string>("thermo_schd_setting", "0"));
+                formData.Add(new KeyValuePair<string, string>("act", "t_schd_setting"));
+            }
+            else if(mode == ThermostateMode.Auto) {
+                // Automodus aktiviert automatisch auch das Ventil.
+                formData.Add(new KeyValuePair<string, string>("thermo_schd_setting", "1"));
+                formData.Add(new KeyValuePair<string, string>("act", "t_schd_setting"));
+            }
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceEditThermoPost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
+
+            return responseBody;
+        }
+        
+        public async Task<LupusecResponseBody> SetThermostatTemperature(string uniqueId, int destinationtTemperature)
+        {
+             IList<KeyValuePair<string, string>> formData = new List<KeyValuePair<string, string>> {
+                { new KeyValuePair<string, string>("thermo_setpoint", destinationtTemperature.ToString()) },
+                { new KeyValuePair<string, string>("act", "t_setpoint") },
+                { new KeyValuePair<string, string>("id", $"{uniqueId}") },
+            };
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, "/action/deviceEditThermoPost");
+            request.Content = new FormUrlEncodedContent(formData);
+
+            LupusecResponseBody responseBody = await SendRequest<LupusecResponseBody>(request, LogLevel.Debug);
+
+            return responseBody;
+        }
+
         private async Task<T> SendRequest<T>(HttpRequestMessage request, LogLevel logLevel = LogLevel.Trace)
         {
             try
@@ -164,7 +210,6 @@ namespace Lupusec2Mqtt.Lupusec
             }
             return default(T);
         }
-
 
     }
 }

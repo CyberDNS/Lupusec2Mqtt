@@ -186,5 +186,14 @@ namespace Lupusec2Mqtt.Lupusec
             return default(T);
         }
 
+        public Task<LupusecResponseBody> SetThermostatMode(string uniqueId, ThermostateMode mode)
+        {
+            throw new NotImplementedException();
+        }
+        
+        public Task<LupusecResponseBody> SetThermostatTemperature(string uniqueId, int destinationtTemperature)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
