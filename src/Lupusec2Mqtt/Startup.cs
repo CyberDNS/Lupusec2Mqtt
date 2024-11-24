@@ -16,6 +16,7 @@ using Polly;
 using Serilog.Core;
 using Serilog;
 using Lupusec2Mqtt.Mqtt.Homeassistant.Model;
+using Lupusec2Mqtt.Diagnostics;
 
 namespace Lupusec2Mqtt
 {
@@ -61,8 +62,6 @@ namespace Lupusec2Mqtt
 
             if (Configuration.GetValue<bool>("Lupusec:MockMode"))
             {
-                //services.AddSingleton<ILupusecService, MockLupusecService>();
-
                 services.AddHttpClient<ILupusecService, MockLupusecService>(client =>
                 {
                     client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
@@ -89,6 +88,7 @@ namespace Lupusec2Mqtt
             }
 
             services.AddSingleton<LupusecCache>();
+            services.AddScoped<DiagnosticsFileService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -104,7 +104,17 @@ namespace Lupusec2Mqtt
             {
                 endpoints.MapGet("/", async context =>
                 {
-                    await context.Response.WriteAsync("Hello Lupusec2Mqtt!");
+                    // generate a small web page with a link to the diagnostics file
+                    await context.Response.WriteAsync("<html><body><h1>Lupusec2Mqtt</h1><p><a href=\"/diagnostics\">Download Diagnostics</a></p></body></html>");
+                });
+
+                endpoints.MapGet("/diagnostics", async context =>
+                {
+                    var diagnosticsFileService = context.RequestServices.GetRequiredService<DiagnosticsFileService>();
+                    var stream = await diagnosticsFileService.GenerateDiagnosticsFileAsync();
+                    context.Response.Headers.Append("Content-Disposition", "attachment; filename=diagnostics.zip");
+                    context.Response.Headers.Append("Content-Type", "application/zip");
+                    await stream.CopyToAsync(context.Response.Body);
                 });
             });
         }
