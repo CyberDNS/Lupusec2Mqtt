@@ -1,3 +1,5 @@
+![Code quality](https://github.com/CyberDNS/Lupusec2Mqtt/actions/workflows/codeql.yml/badge.svg)
+
 # Lupusec2Mqtt
 
 Make your Lupusec XT2 (and compatible) Alarm System available on an MQTT Broker (compatible with Home Assistant).
