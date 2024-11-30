@@ -1,3 +1,4 @@
+[![.NET](https://github.com/CyberDNS/Lupusec2Mqtt/actions/workflows/dotnet.yml/badge.svg)](https://github.com/CyberDNS/Lupusec2Mqtt/actions/workflows/dotnet.yml)
 ![Code quality](https://github.com/CyberDNS/Lupusec2Mqtt/actions/workflows/codeql.yml/badge.svg)
 
 # Lupusec2Mqtt
