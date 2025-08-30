@@ -23,6 +23,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("position_open", 100);
             DeclareStaticValue("position_closed", 0);
 
+            DeclareLupusXT1PlusDevice();
+
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
             DeclareQuery("position_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/position", GetPosition);
 

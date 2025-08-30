@@ -25,7 +25,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("unique_id", thermostat.SensorId);                        
             DeclareStaticValue("temp_step", "0.1");            
                 
-            DeclareStaticValue("modes", new List<string>{mode_off, mode_heat, mode_auto});                       
+            DeclareStaticValue("modes", new List<string>{mode_off, mode_heat, mode_auto});
+
+            DeclareLupusXT1PlusDevice();
 
             DeclareQuery("current_temperature_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/current_temperature", GetCurrentTemp);
             DeclareQuery("temperature_state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/temperature_state", GetDestinationTemp);      

@@ -23,6 +23,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("name", $"Area {area}");
             DeclareStaticValue("unique_id", $"lupusec_alarm_area{area}");
 
+            DeclareLupusXT1PlusDevice();
+
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
 
             DeclareCommand("command_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/set", SetAlarm);

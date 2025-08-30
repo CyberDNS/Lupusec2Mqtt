@@ -24,6 +24,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("device_class", "humidity");
             DeclareStaticValue("unit_of_measurement", "%");
 
+            DeclareLupusXT1PlusDevice();
+
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }
 
