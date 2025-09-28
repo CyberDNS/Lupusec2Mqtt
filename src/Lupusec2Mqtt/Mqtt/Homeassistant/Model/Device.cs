@@ -59,11 +59,10 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
             return topic.Replace(":", "_");
         }
 
-        protected void DeclareLupusXT1PlusDevice()
+        protected void DeclareLupusecDevice()
         {
-            DeclareDeviceInfo("identifiers", new[] { "lupus_xt1_plus" });
-            DeclareDeviceInfo("name", "Lupus XT1 Plus");
-            DeclareDeviceInfo("model", "XT1 Plus");
+            DeclareDeviceInfo("identifiers", new[] { "lupusec" });
+            DeclareDeviceInfo("name", "Lupusec");
             DeclareDeviceInfo("manufacturer", "Lupus Electronics");
         }
 

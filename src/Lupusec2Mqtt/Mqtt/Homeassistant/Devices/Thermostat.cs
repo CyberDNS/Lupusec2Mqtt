@@ -27,7 +27,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
                 
             DeclareStaticValue("modes", new List<string>{mode_off, mode_heat, mode_auto});
 
-            DeclareLupusXT1PlusDevice();
+            DeclareLupusecDevice();
 
             DeclareQuery("current_temperature_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/current_temperature", GetCurrentTemp);
             DeclareQuery("temperature_state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/temperature_state", GetDestinationTemp);      

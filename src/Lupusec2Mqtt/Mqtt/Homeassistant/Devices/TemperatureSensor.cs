@@ -24,7 +24,7 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("device_class", "temperature");
             DeclareStaticValue("unit_of_measurement", "\x00B0C");
 
-            DeclareLupusXT1PlusDevice();
+            DeclareLupusecDevice();
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }
