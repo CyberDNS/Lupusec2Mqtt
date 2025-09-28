@@ -23,6 +23,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("unique_id", sensor.SensorId);
             DeclareStaticValue("device_class", "motion");
 
+            DeclareLupusecDevice();
+
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }
 

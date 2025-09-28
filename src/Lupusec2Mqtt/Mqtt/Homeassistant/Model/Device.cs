@@ -19,6 +19,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
         private Dictionary<string, object> _staticValues = new Dictionary<string, object>();
         public IEnumerable<StaticValue> StaticValues { get => _staticValues.Select(kvp => new StaticValue(kvp.Key, kvp.Value)); }
 
+        private Dictionary<string, object> _deviceInfo = new Dictionary<string, object>();
+        public IEnumerable<StaticValue> DeviceInfo { get => _deviceInfo.Select(kvp => new StaticValue(kvp.Key, kvp.Value)); }
 
         private List<Query> _queries = new List<Query>();
         public IEnumerable<Query> Queries { get => _queries.ToArray(); }
@@ -30,6 +32,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
         protected void DeclareStaticValue(string name, object value)
         {
             _staticValues.Add(name, value);
+        }
+
+        protected void DeclareDeviceInfo(string name, object value)
+        {
+            _deviceInfo.Add(name, value);
         }
 
         protected void DeclareQuery(string name, string valueTopic, Func<ILogger, ILupusecService, Task<string>> getValue)
@@ -50,6 +57,13 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
         protected string EscapeTopic(string topic)
         {
             return topic.Replace(":", "_");
+        }
+
+        protected void DeclareLupusecDevice()
+        {
+            DeclareDeviceInfo("identifiers", new[] { "lupusec" });
+            DeclareDeviceInfo("name", "Lupusec");
+            DeclareDeviceInfo("manufacturer", "Lupus Electronics");
         }
 
         public override string ToString()

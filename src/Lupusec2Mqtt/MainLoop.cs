@@ -13,6 +13,7 @@ using System.Text.Json;
 using System.Dynamic;
 using Lupusec2Mqtt.Mqtt;
 using Newtonsoft.Json.Linq;
+using System.Linq;
 
 namespace Lupusec2Mqtt
 {
@@ -56,6 +57,15 @@ namespace Lupusec2Mqtt
                 ExpandoObject dto = new ExpandoObject();
                 foreach (StaticValue staticValue in device.StaticValues) { dto.TryAdd(staticValue.Name, staticValue.Value); }
                 foreach (Query query in device.Queries) { dto.TryAdd(query.Name, query.ValueTopic); }
+                
+                // Add device information for Home Assistant grouping
+                if (device.DeviceInfo.Any())
+                {
+                    var deviceInfo = new ExpandoObject();
+                    foreach (StaticValue deviceValue in device.DeviceInfo) { deviceInfo.TryAdd(deviceValue.Name, deviceValue.Value); }
+                    dto.TryAdd("device", deviceInfo);
+                }
+                
                 foreach (Command command in device.Commands)
                 {
                     dto.TryAdd(command.Name, command.CommandTopic);
