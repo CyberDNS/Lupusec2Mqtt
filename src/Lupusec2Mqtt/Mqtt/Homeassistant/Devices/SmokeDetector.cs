@@ -26,7 +26,17 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
-            var result = sensor.StatusEx == 1 || sensor.Status.Equals("DOORBELL", System.StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF"; 
+            
+            // Check alarm_status_ex field (boolean) and alarm_status field (string like "SMOKE" or "CO")
+            if (sensor.AlarmStatusEx || 
+                "SMOKE".Equals(sensor.AlarmStatus, System.StringComparison.OrdinalIgnoreCase) ||
+                "CO".Equals(sensor.AlarmStatus, System.StringComparison.OrdinalIgnoreCase))
+            {
+                return Task.FromResult("ON");
+            }
+            
+            // Fallback to legacy checks for backwards compatibility
+            var result = sensor.StatusEx == 1 || "DOORBELL".Equals(sensor.Status, System.StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF"; 
 
             return Task.FromResult(result);
         }
