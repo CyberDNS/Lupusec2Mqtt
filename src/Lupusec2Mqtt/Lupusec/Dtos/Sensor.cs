@@ -66,6 +66,9 @@ namespace Lupusec2Mqtt.Lupusec.Dtos
         [JsonProperty("alarm_status")]
         public string AlarmStatus;
 
+        [JsonProperty("alarm_status_ex")]
+        public bool AlarmStatusEx;
+
         [JsonProperty("status_ex")]
         public byte StatusEx;
     }
