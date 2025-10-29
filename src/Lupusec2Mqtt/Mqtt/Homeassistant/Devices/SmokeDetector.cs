@@ -29,14 +29,14 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             
             // Check alarm_status_ex field (boolean) and alarm_status field (string like "SMOKE" or "CO")
             if (sensor.AlarmStatusEx || 
-                "SMOKE".Equals(sensor.AlarmStatus, System.StringComparison.OrdinalIgnoreCase) ||
-                "CO".Equals(sensor.AlarmStatus, System.StringComparison.OrdinalIgnoreCase))
+                sensor.AlarmStatus.Equals("SMOKE", System.StringComparison.OrdinalIgnoreCase) ||
+                sensor.AlarmStatus.Equals("CO", System.StringComparison.OrdinalIgnoreCase))
             {
                 return Task.FromResult("ON");
             }
             
             // Fallback to legacy checks for backwards compatibility
-            var result = sensor.StatusEx == 1 || "DOORBELL".Equals(sensor.Status, System.StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF"; 
+            var result = sensor.StatusEx == 1 || sensor.Status.Equals("DOORBELL", System.StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF"; 
 
             return Task.FromResult(result);
         }
