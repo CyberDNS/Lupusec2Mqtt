@@ -26,7 +26,9 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         public Task<string> GetState(ILogger logger, ILupusecService lupusecService)
         {
             var sensor = lupusecService.SensorList.Sensors.Single(s => s.SensorId == GetStaticValue<string>("unique_id"));
-            var result = sensor.StatusEx == 1 || sensor.Status.Equals("DOORBELL", System.StringComparison.OrdinalIgnoreCase) ? "ON" : "OFF"; 
+
+            // Check AlarmStatus field - any non-empty value indicates smoke/fire alarm is triggered
+            var result = !string.IsNullOrEmpty(sensor.AlarmStatus) ? "ON" : "OFF";
 
             return Task.FromResult(result);
         }
