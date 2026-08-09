@@ -26,7 +26,7 @@ namespace Lupusec2Mqtt.Lupusec
             request.Headers.Add("X-Token", _token);
             var response = await base.SendAsync(request, cancellationToken);
 
-            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.Content.Headers.ContentType.MediaType == "text/html")
+            if (response.StatusCode == System.Net.HttpStatusCode.Unauthorized || response.Content?.Headers.ContentType?.MediaType == "text/html")
             {
                 _logger.LogDebug("Getting new authorization token due to failed request");
 
