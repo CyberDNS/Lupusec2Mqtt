@@ -84,7 +84,7 @@ jobs:
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/master' }}
             type=sha,prefix=sha-,format=short,enable=${{ github.ref == 'refs/heads/master' }}
             type=raw,value=edge,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=ref,event=tag
+            type=semver,pattern={{version}}
           labels: |
             org.opencontainers.image.title=Lupusec2Mqtt
             org.opencontainers.image.description=Connect your Lupusec Alarm system to Home Assistant by an MQTT integration
@@ -169,7 +169,7 @@ jobs:
             type=raw,value=dev,enable=${{ github.ref == 'refs/heads/master' }}
             type=sha,prefix=sha-,format=short,enable=${{ github.ref == 'refs/heads/master' }}
             type=raw,value=edge,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-            type=ref,event=tag
+            type=semver,pattern={{version}}
           labels: |
             org.opencontainers.image.title=Lupusec2Mqtt
             org.opencontainers.image.description=Connect your Lupusec Alarm system to Home Assistant by an MQTT integration
