@@ -1,0 +1,183 @@
+# Build and publish container images.
+#
+# Trigger behaviour:
+#   pull_request     → build only (all platforms), no push — catches Dockerfile
+#                      breaks before merge
+#   push to master    → build + publish :dev + :sha-<short-sha>
+#   tag push (v*)     → build + publish :edge + :<tag>
+#
+# :latest is intentionally NOT set here — it only moves when a version is
+# promoted to prod (see hassio-addons-repository's "Promote to prod"
+# workflow), which copies the already-built image by digest rather than
+# rebuilding it.
+#
+# Images are published to:
+#   ghcr.io/cyberdns/lupusec2mqtt
+#
+# HA's "armhf" (arm/v6) architecture is aliased to the arm/v7 build, since
+# .NET no longer supports arm/v6 — this matches the previous manual workflow.
+
+name: Publish Docker image
+
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+      - "v*"
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: cyberdns/lupusec2mqtt
+
+jobs:
+  build-and-push:
+    name: Build and push (${{ matrix.platform }})
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - linux/amd64
+          - linux/arm64
+          - linux/arm/v7
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute version
+        id: version
+        run: |
+          if [[ "${GITHUB_REF}" == refs/tags/v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+          else
+            echo "version=0.0.0-dev" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/master' }}
+            type=sha,prefix=sha-,format=short,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=edge,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.title=Lupusec2Mqtt
+            org.opencontainers.image.description=Connect your Lupusec Alarm system to Home Assistant by an MQTT integration
+            org.opencontainers.image.vendor=CyberDNS
+
+      - name: Build (PR validation)
+        if: github.event_name == 'pull_request'
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
+          push: false
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+
+      - name: Build and push by digest
+        if: github.event_name != 'pull_request'
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          platforms: ${{ matrix.platform }}
+          build-args: |
+            VERSION=${{ steps.version.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          outputs: type=image,name=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }},push-by-digest=true,name-canonical=true,push=true
+          cache-from: type=gha,scope=${{ matrix.platform }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.platform }}
+
+      - name: Export digest
+        if: github.event_name != 'pull_request'
+        run: |
+          mkdir -p /tmp/digests
+          digest="${{ steps.build.outputs.digest }}"
+          touch "/tmp/digests/${digest#sha256:}"
+
+      - name: Upload digest
+        if: github.event_name != 'pull_request'
+        uses: actions/upload-artifact@v4
+        with:
+          name: digests-${{ strategy.job-index }}
+          path: /tmp/digests/*
+          if-no-files-found: error
+          retention-days: 1
+
+  merge-manifest:
+    name: Merge multi-arch manifest
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: github.event_name != 'pull_request'
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Download digests
+        uses: actions/download-artifact@v4
+        with:
+          path: /tmp/digests
+          pattern: digests-*
+          merge-multiple: true
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Compute image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
+          tags: |
+            type=raw,value=dev,enable=${{ github.ref == 'refs/heads/master' }}
+            type=sha,prefix=sha-,format=short,enable=${{ github.ref == 'refs/heads/master' }}
+            type=raw,value=edge,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
+            type=ref,event=tag
+          labels: |
+            org.opencontainers.image.title=Lupusec2Mqtt
+            org.opencontainers.image.description=Connect your Lupusec Alarm system to Home Assistant by an MQTT integration
+            org.opencontainers.image.vendor=CyberDNS
+
+      - name: Create and push manifest
+        run: |
+          docker buildx imagetools create \
+            $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
+            $(printf "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s " *)
+        working-directory: /tmp/digests

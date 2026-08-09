@@ -37,16 +37,14 @@ The repository is: https://github.com/CyberDNS/hassio-addons-repository
 ### Alternative 1: Environment variables
 For users who want to run Lupusec2Mqtt as a standalone Docker container (not as a Home Assistant addon), you can use the following `docker run` command as an example for the amd64 architecture:
 ```bash
-docker run -e "Mqtt__Server=127.0.0.1" -e "Mqtt__Login=" -e "Mqtt__Password=" -e "Lupusec__Url=http://192.168.2.50" -e "Lupusec__Login=admin" -e "Lupusec__Password=lupusecpassword" -e "MotionSensor__DetectionDuration=120" -e "Serilog__MinimumLevel__Default=Information" cyberdns/lupusec2mqtt_hassaddon_amd64:3.1.2
+docker run -e "Mqtt__Server=127.0.0.1" -e "Mqtt__Login=" -e "Mqtt__Password=" -e "Lupusec__Url=http://192.168.2.50" -e "Lupusec__Login=admin" -e "Lupusec__Password=lupusecpassword" -e "MotionSensor__DetectionDuration=120" -e "Serilog__MinimumLevel__Default=Information" ghcr.io/cyberdns/lupusec2mqtt:latest
 ```
-Replace the architecture in the last part of the image name based on your system:
-```json
-"arch": [
-    "aarch64",
-    "amd64",
-    "armhf",
-    "armv7"
-]
+The image is multi-arch (amd64, arm64, arm/v7), so Docker pulls the right variant automatically. Available tags:
+```
+ghcr.io/cyberdns/lupusec2mqtt:dev      # latest master branch (dev channel)
+ghcr.io/cyberdns/lupusec2mqtt:edge     # latest tagged version (edge channel)
+ghcr.io/cyberdns/lupusec2mqtt:latest   # last version promoted to prod
+ghcr.io/cyberdns/lupusec2mqtt:<tag>    # pinned to a specific release tag
 ```
 
 ### Alternative 2: Volumes
