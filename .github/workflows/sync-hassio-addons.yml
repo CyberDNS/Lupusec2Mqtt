@@ -1,0 +1,172 @@
+# Synchronise CyberDNS/hassio-addons-repository after source-repo events.
+#
+# Trigger behaviour:
+#   push to master     → open/update PR for Lupusec2Mqtt-dev  (dev channel)
+#   release published  → open/update PR for Lupusec2Mqtt-edge (edge channel)
+#
+# There is no direct path to the prod channel here. Promoting an already
+# published (and validated) edge version to prod is a separate, manual step —
+# see hassio-addons-repository's "Promote to prod" workflow. It reuses the
+# exact image that edge already published; nothing gets rebuilt.
+#
+# Each PR updates:
+#   config.json  — version field
+#   CHANGELOG.md — dev gets a short auto snapshot entry; edge gets the
+#                  curated GitHub Release body verbatim
+#
+# Required secret:
+#   HASSIO_ADDONS_PAT — a GitHub personal access token (classic) or
+#                       fine-grained PAT with "Contents: Read & Write" and
+#                       "Pull requests: Read & Write" permissions on
+#                       CyberDNS/hassio-addons-repository.
+
+name: Sync HA add-on repository
+
+on:
+  push:
+    branches:
+      - master
+  release:
+    types:
+      - published
+
+jobs:
+  sync-addon:
+    name: Sync add-on repo
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout Lupusec2Mqtt (source)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute channel metadata
+        id: meta
+        env:
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RELEASE_BODY: ${{ github.event.release.body }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          ENTRY_DATE=$(date -u +%Y-%m-%d)
+
+          if [[ "${{ github.event_name }}" == "release" ]]; then
+            CHANNEL="edge"
+            ADDON_FOLDER="Lupusec2Mqtt-edge"
+            VERSION="${RELEASE_TAG#v}"
+            PR_TITLE="chore(Lupusec2Mqtt-edge): bump to ${RELEASE_TAG}"
+            PR_BODY="Automated sync from CyberDNS/Lupusec2Mqtt release [${RELEASE_TAG}](${RELEASE_URL})."
+
+            {
+              echo "changelog_entry<<EOF_ENTRY"
+              printf '%s\n' "$RELEASE_BODY"
+              echo "EOF_ENTRY"
+            } >> "$GITHUB_OUTPUT"
+          else
+            CHANNEL="dev"
+            ADDON_FOLDER="Lupusec2Mqtt-dev"
+            VERSION="0.0.0-dev.${SHORT_SHA}"
+            PR_TITLE="chore(Lupusec2Mqtt-dev): sync dev snapshot ${SHORT_SHA}"
+            PR_BODY="Automated sync from CyberDNS/Lupusec2Mqtt commit [${SHORT_SHA}](https://github.com/CyberDNS/Lupusec2Mqtt/commit/${GITHUB_SHA}) on \`master\`."
+
+            {
+              echo "changelog_entry<<EOF_ENTRY"
+              echo "Dev snapshot from \`master\` (commit [${SHORT_SHA}](https://github.com/CyberDNS/Lupusec2Mqtt/commit/${GITHUB_SHA}))."
+              echo "EOF_ENTRY"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+          echo "channel=${CHANNEL}"           >> "$GITHUB_OUTPUT"
+          echo "addon_folder=${ADDON_FOLDER}" >> "$GITHUB_OUTPUT"
+          echo "version=${VERSION}"           >> "$GITHUB_OUTPUT"
+          echo "short_sha=${SHORT_SHA}"       >> "$GITHUB_OUTPUT"
+          echo "entry_date=${ENTRY_DATE}"     >> "$GITHUB_OUTPUT"
+          echo "pr_title=${PR_TITLE}"         >> "$GITHUB_OUTPUT"
+          {
+            echo "pr_body<<EOF_BODY"
+            printf '%s\n' "$PR_BODY"
+            echo "EOF_BODY"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Checkout hassio-addons-repository
+        uses: actions/checkout@v4
+        with:
+          repository: CyberDNS/hassio-addons-repository
+          token: ${{ secrets.HASSIO_ADDONS_PAT }}
+          path: hassio-addons-repository
+
+      - name: Update config.json version
+        env:
+          ADDON_FOLDER: ${{ steps.meta.outputs.addon_folder }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          CONFIG="hassio-addons-repository/${ADDON_FOLDER}/config.json"
+          jq --arg v "$VERSION" '.version = $v' "$CONFIG" > "${CONFIG}.tmp"
+          mv "${CONFIG}.tmp" "$CONFIG"
+          echo "Updated ${CONFIG} version to ${VERSION}"
+
+      - name: Update CHANGELOG.md
+        env:
+          ADDON_FOLDER: ${{ steps.meta.outputs.addon_folder }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          ENTRY_DATE: ${{ steps.meta.outputs.entry_date }}
+          CHANGELOG_ENTRY: ${{ steps.meta.outputs.changelog_entry }}
+        run: |
+          CHANGELOG="hassio-addons-repository/${ADDON_FOLDER}/CHANGELOG.md"
+
+          NEW_ENTRY="## ${VERSION} (${ENTRY_DATE})
+
+          ${CHANGELOG_ENTRY}
+
+          "
+
+          if [[ -f "$CHANGELOG" ]]; then
+            HEADER=$(head -1 "$CHANGELOG")
+            REST=$(tail -n +2 "$CHANGELOG")
+            printf '%s\n\n%s\n%s' "$HEADER" "$NEW_ENTRY" "$REST" > "$CHANGELOG"
+          else
+            printf '# Changelog\n\n%s' "$NEW_ENTRY" > "$CHANGELOG"
+          fi
+
+          echo "Prepended entry for ${VERSION} to ${CHANGELOG}"
+
+      - name: Open pull request in hassio-addons-repository
+        env:
+          GH_TOKEN: ${{ secrets.HASSIO_ADDONS_PAT }}
+          ADDON_FOLDER: ${{ steps.meta.outputs.addon_folder }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          SHORT_SHA: ${{ steps.meta.outputs.short_sha }}
+          PR_TITLE: ${{ steps.meta.outputs.pr_title }}
+          PR_BODY: ${{ steps.meta.outputs.pr_body }}
+        run: |
+          cd hassio-addons-repository
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          BRANCH="sync/${ADDON_FOLDER}-${VERSION}-${SHORT_SHA}"
+
+          git checkout -b "$BRANCH"
+          git add "${ADDON_FOLDER}/"
+
+          if git diff --cached --quiet; then
+            echo "No changes detected in ${ADDON_FOLDER}/ — skipping PR"
+            exit 0
+          fi
+
+          git commit -m "${PR_TITLE}"
+          git push origin "$BRANCH"
+
+          BASE_BRANCH=$(gh repo view CyberDNS/hassio-addons-repository \
+            --json defaultBranchRef --jq '.defaultBranchRef.name')
+
+          gh pr create \
+            --repo CyberDNS/hassio-addons-repository \
+            --head "$BRANCH" \
+            --base "${BASE_BRANCH}" \
+            --title "${PR_TITLE}" \
+            --body "${PR_BODY}"
