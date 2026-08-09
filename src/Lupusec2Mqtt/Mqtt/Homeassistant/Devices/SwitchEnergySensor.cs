@@ -23,6 +23,8 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
             DeclareStaticValue("unique_id", $"{powerSwitch.Id}_energy");
             DeclareStaticValue("unit_of_measurement", "kWh");
 
+            DeclareLupusecDevice();
+
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }
 
