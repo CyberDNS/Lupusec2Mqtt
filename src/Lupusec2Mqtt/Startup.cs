@@ -49,7 +49,7 @@ namespace Lupusec2Mqtt
                 Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
             })
             .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
-            .AddTransientHttpErrorPolicy(c => 
+            .AddTransientHttpErrorPolicy(c =>
             {
                 return c.WaitAndRetryAsync(new[]
                 {
@@ -59,6 +59,18 @@ namespace Lupusec2Mqtt
                 },
                 (ex, timespan) => LupusecTokenHandler.ResetToken());
             });
+
+            // Retries the whole request (including token re-authentication via LupusecTokenHandler)
+            // when the panel still answers 401 after a stale/expired session, so a stale token never
+            // surfaces as a failed command to the caller - see GitHub issue #102.
+            var unauthorizedRetryPolicy = Policy<HttpResponseMessage>
+                .Handle<HttpRequestException>()
+                .OrResult(r => r.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                .WaitAndRetryAsync(new[]
+                {
+                    TimeSpan.FromMilliseconds(200),
+                    TimeSpan.FromSeconds(1)
+                });
 
             if (Configuration.GetValue<bool>("Lupusec:MockMode"))
             {
@@ -71,10 +83,11 @@ namespace Lupusec2Mqtt
                     Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
                 })
                 .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
+                .AddPolicyHandler(unauthorizedRetryPolicy)
                 .AddHttpMessageHandler<LupusecTokenHandler>();
             }
-            else 
-            { 
+            else
+            {
                 services.AddHttpClient<ILupusecService, LupusecService>(client =>
                 {
                     client.BaseAddress = new Uri(Configuration["Lupusec:Url"]);
@@ -84,6 +97,7 @@ namespace Lupusec2Mqtt
                     Convert.ToBase64String(Encoding.ASCII.GetBytes($"{Configuration["Lupusec:Login"]}:{Configuration["Lupusec:Password"]}")));
                 })
                 .ConfigurePrimaryHttpMessageHandler(x => new HttpClientHandler() { ServerCertificateCustomValidationCallback = HttpClientHandler.DangerousAcceptAnyServerCertificateValidator })
+                .AddPolicyHandler(unauthorizedRetryPolicy)
                 .AddHttpMessageHandler<LupusecTokenHandler>();
             }
 
