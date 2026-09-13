@@ -61,15 +61,18 @@ namespace Lupusec2Mqtt
             });
 
             // Retries the whole request (including token re-authentication via LupusecTokenHandler)
-            // when the panel still answers 401 after a stale/expired session, so a stale token never
-            // surfaces as a failed command to the caller - see GitHub issue #102.
+            // when the panel still answers 401, or 200 with an HTML login page instead of JSON, after
+            // a stale/expired session - LupusecTokenHandler only retries once internally, which is not
+            // always enough right after long inactivity - see GitHub issue #102.
             var unauthorizedRetryPolicy = Policy<HttpResponseMessage>
                 .Handle<HttpRequestException>()
-                .OrResult(r => r.StatusCode == System.Net.HttpStatusCode.Unauthorized)
+                .OrResult(r => r.StatusCode == System.Net.HttpStatusCode.Unauthorized
+                    || r.Content?.Headers.ContentType?.MediaType == "text/html")
                 .WaitAndRetryAsync(new[]
                 {
                     TimeSpan.FromMilliseconds(200),
-                    TimeSpan.FromSeconds(1)
+                    TimeSpan.FromSeconds(1),
+                    TimeSpan.FromSeconds(2)
                 });
 
             if (Configuration.GetValue<bool>("Lupusec:MockMode"))
