@@ -15,11 +15,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public OpenCloseContact(Sensor sensor)
         {
-            DeclareStaticValue("name", sensor.Name);
+            DeclareStaticValue("name", null);
             DeclareStaticValue("unique_id", sensor.SensorId);
             DeclareStaticValue("device_class", "window");
 
-            DeclareLupusecDevice();
+            DeclareLupusecSubDevice(sensor.SensorId, sensor.Name, sensor.TypeId);
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }

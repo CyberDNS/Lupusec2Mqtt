@@ -15,10 +15,10 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public Lock(PowerSwitch powerSwitch)
         {
-            DeclareStaticValue("name", powerSwitch.Name);
+            DeclareStaticValue("name", null);
             DeclareStaticValue("unique_id", powerSwitch.Id);
 
-            DeclareLupusecDevice();
+            DeclareLupusecSubDevice(powerSwitch.Id, powerSwitch.Name, powerSwitch.Type);
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
 

@@ -18,12 +18,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
 
         public Cover(Sensor shutter)
         {
-            DeclareStaticValue("name", shutter.Name);
+            DeclareStaticValue("name", null);
             DeclareStaticValue("unique_id", shutter.SensorId);
             DeclareStaticValue("position_open", 100);
             DeclareStaticValue("position_closed", 0);
 
-            DeclareLupusecDevice();
+            DeclareLupusecSubDevice(shutter.SensorId, shutter.Name, shutter.TypeId);
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
             DeclareQuery("position_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/position", GetPosition);

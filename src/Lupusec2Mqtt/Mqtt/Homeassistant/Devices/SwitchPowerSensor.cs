@@ -19,11 +19,11 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         {
             _id = powerSwitch.Id;
 
-            DeclareStaticValue("name", $"{powerSwitch.Name} - Power");
+            DeclareStaticValue("name", "Power");
             DeclareStaticValue("unique_id", $"{powerSwitch.Id}_power");
             DeclareStaticValue("unit_of_measurement", "W");
 
-            DeclareLupusecDevice();
+            DeclareLupusecSubDevice(powerSwitch.Id, powerSwitch.Name, powerSwitch.Type);
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }
