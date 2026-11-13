@@ -19,12 +19,12 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Devices
         {
             _id = sensor.SensorId;
 
-            DeclareStaticValue("name", sensor.Name + " - Humidity");
+            DeclareStaticValue("name", "Humidity");
             DeclareStaticValue("unique_id", sensor.SensorId + "HUMIDITY");
             DeclareStaticValue("device_class", "humidity");
             DeclareStaticValue("unit_of_measurement", "%");
 
-            DeclareLupusecDevice();
+            DeclareLupusecSubDevice(sensor.SensorId, sensor.Name, sensor.TypeId);
 
             DeclareQuery("state_topic", $"homeassistant/{Component}/lupusec/{GetStaticValue<string>("unique_id")}/state", GetState);
         }

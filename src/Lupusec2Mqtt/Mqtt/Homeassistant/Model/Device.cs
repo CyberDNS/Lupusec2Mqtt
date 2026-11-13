@@ -59,16 +59,58 @@ namespace Lupusec2Mqtt.Mqtt.Homeassistant.Model
             return topic.Replace(":", "_");
         }
 
+        public const string LupusecDeviceIdentifier = "lupusec";
+
+        /// <summary>
+        /// Attaches the entity to the Lupusec hub device (used for panel/area level entities).
+        /// </summary>
         protected void DeclareLupusecDevice()
         {
-            DeclareDeviceInfo("identifiers", new[] { "lupusec" });
+            DeclareDeviceInfo("identifiers", new[] { LupusecDeviceIdentifier });
             DeclareDeviceInfo("name", "Lupusec");
             DeclareDeviceInfo("manufacturer", "Lupus Electronics");
+            // Supported alarm centrals (see README). Kept out of the device name so entity names stay short.
+            DeclareDeviceInfo("model", "XT1 Plus / XT2 / XT2 Plus");
         }
+
+        /// <summary>
+        /// Attaches the entity to its own Home Assistant device representing a physical Lupusec
+        /// sensor or switch, linked to the Lupusec hub device via "via_device".
+        /// Entities created for the same physical device (e.g. switch + power + energy) share the same sub-device.
+        /// </summary>
+        protected void DeclareLupusecSubDevice(string id, string name, int typeId)
+        {
+            DeclareDeviceInfo("identifiers", new[] { EscapeTopic($"{LupusecDeviceIdentifier}_{id}") });
+            DeclareDeviceInfo("name", name);
+            DeclareDeviceInfo("manufacturer", "Lupus Electronics");
+            DeclareDeviceInfo("model", _modelNames.TryGetValue(typeId, out var model) ? model : $"Type {typeId}");
+            DeclareDeviceInfo("via_device", LupusecDeviceIdentifier);
+        }
+
+        // The panel only returns localization placeholders (e.g. "{D_TYPE_48}") as type names,
+        // so map the type ids handled by the device factories to readable model names.
+        private static readonly Dictionary<int, string> _modelNames = new()
+        {
+            { 4, "Door/Window Contact" },
+            { 5, "Water Detector" },
+            { 9, "Motion Detector" },
+            { 11, "Smoke Detector" },
+            { 24, "Power Switch" },
+            { 33, "Door/Window Contact" },
+            { 48, "Power Switch Meter" },
+            { 54, "Temperature/Humidity Sensor" },
+            { 57, "Door Lock" },
+            { 74, "Dimmer" },
+            { 76, "Shutter Relay" },
+            { 79, "Radiator Thermostat" },
+            { 93, "Vibration Detector" },
+        };
 
         public override string ToString()
         {
-            return $"{GetStaticValue<string>("unique_id")} - {GetStaticValue<string>("name")}";
+            var name = GetStaticValue<string>("name");
+            if (name == null && _deviceInfo.TryGetValue("name", out var deviceName)) { name = deviceName as string; }
+            return $"{GetStaticValue<string>("unique_id")} - {name}";
         }
     }
 }
